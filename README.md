@@ -1,2 +1,2 @@
 # Mapas
-contiene los mapas geojason
+contiene los mapas geojson
