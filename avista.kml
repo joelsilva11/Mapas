@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<GroundOverlay>
+	<name>avista.tif</name>
+	<description>Source Image: C:/Users/Joel Silva/OneDrive/Escritorio/Avista/avista.tif</description>
+	<Icon>
+		<href>C:/Users/Joel Silva/AppData/LocalLow/Google/GoogleEarth/import/avista_scaled.png</href>
+		<viewBoundScale>0.75</viewBoundScale>
+	</Icon>
+	<LatLonBox>
+		<north>-17.70906759125303</north>
+		<south>-17.71294725643259</south>
+		<east>-63.22119325804442</east>
+		<west>-63.22691632668751</west>
+	</LatLonBox>
+</GroundOverlay>
+</kml>
