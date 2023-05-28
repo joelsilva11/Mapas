@@ -1,139 +1,85 @@
-import os
-os.environ['USE_PYGEOS'] = '0'
-import geopandas as gpd
 import dash
 from dash import dcc, html
 import dash_bootstrap_components as dbc
+import plotly.graph_objects as go
 import pandas as pd
 from dash.dependencies import Input, Output, State
 import base64
 import io
-import plotly.express as px
 
-#imagen logo Altitude
-PLOTLY_LOGO = "https://raw.githubusercontent.com/joelsilva11/Mapas/main/logo-blanco.png"
-#Token para usar mapox
-token = 'pk.eyJ1Ijoiam1zczExIiwiYSI6ImNsN3RsbHpldDEwNDIzdm1rMG1qZWx6cmUifQ.svDPURTTxi1aHuHpzPU8sQ'
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+mapbox_access_token = 'pk.eyJ1Ijoiam1zczExIiwiYSI6ImNsN3RsbHpldDEwNDIzdm1rMG1qZWx6cmUifQ.svDPURTTxi1aHuHpzPU8sQ'
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
-
-
-#################################################################################################################################################################
-#Barra de titulo y carga de archivo csv
-#################################################################################################################################################################
-navbar = dbc.Navbar(
-    [
-        dbc.Row(
-            [
-                dbc.Col(html.Img(src=PLOTLY_LOGO, height="60px"),width=1),
-                dbc.Col(dbc.NavbarBrand("VISUALIZACIÓN DE MAPAS DE CALOR CON CONTORNOS DE DENSIDAD", className="ms-2",style={'font-size': '36px'}), width=8),
-                dbc.Col(
-                    dcc.Upload(
-                        id='upload-data',
-                        children=html.Div([
-                            'Arrastra y suelta o ',
-                            html.A('selecciona archivos')
-                        ]),
-                        style={
-                            'width': '100%',
-                            'height': '60px',
-                            'lineHeight': '60px',
-                            'borderWidth': '1px',
-                            'borderStyle': 'dashed',
-                            'borderRadius': '5px',
-                            'textAlign': 'center',
-                            'margin': '10px'
-                        },
-                        multiple=False # Solo permite un archivo a la vez
-                    ),
-                    #width=3,
-                    align="center"
-                ),
-            ],
-            align="center",
-            style={"margin": "0", "width": "100%"},
-        ),
-    ],
-    color="dark",
-    dark=True,
-)
-#################################################################################################################################################################
-#Fin Barra de titulo y carga de archivo csv
-#################################################################################################################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Diseño de la aplicación
 app.layout = html.Div([
-    dcc.Upload(
-        id='upload-data',
-        children=html.Div([
-            'Arrastra y suelta o ',
-            html.A('selecciona archivos')
-        ]),
-        style={
-            'width': '100%',
-            'height': '60px',
-            'lineHeight': '60px',
-            'borderWidth': '1px',
-            'borderStyle': 'dashed',
-            'borderRadius': '5px',
-            'textAlign': 'center',
-            'margin': '10px'
-        },
-        multiple=False  # Permite solo un archivo a la vez
-    ),
-    dcc.Graph(id='map-graph')
+    html.Div([
+        dcc.Upload(
+            id='upload-data',
+            children=html.Div([
+                'Arrastre y suelte o ',
+                html.A('Seleccione Archivos')
+            ]),
+            style={
+                'width': '99%',
+                'height': '97vh',
+                'display': 'flex',  # Esto permite utilizar las propiedades flexbox para centrar el contenido
+                'justify-content': 'center',  # Centra el contenido horizontalmente
+                'align-items': 'center',  # Centra el contenido verticalmente
+                'lineHeight': '60px',
+                'borderWidth': '2px',
+                'borderStyle': 'dashed',
+                'borderRadius': '20px',
+                'textAlign': 'center',
+                'margin': '10px'
+            }
+        ),
+    ], id='upload-container'),
+    html.Div([
+        dbc.Spinner(dcc.Graph(id='output-data-upload', style={'height': '98vh'})),
+    ], id='map-container', style={'display': 'none'}),
 ])
 
-# Callback para actualizar el mapa cuando se cargue un archivo
-@app.callback(
-    Output('map-graph', 'figure'),
-    Input('upload-data', 'contents'),
-    Input('upload-data', 'filename')
-)
-def update_map(contents, filename):
-    if contents is not None:
-        # Cargar el archivo CSV
-        df = pd.read_csv(filename)
 
-        # Verificar si el archivo contiene las columnas de latitud y longitud
-        if 'lat' in df.columns and 'lon' in df.columns:
-            # Crear un mapa vacío
-            fig = go.Figure(go.Scattermapbox())
+def parse_contents(contents, filename):
+    content_type, content_string = contents.split(',')
+    decoded = base64.b64decode(content_string)
+    df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
+    return df
 
-            # Actualizar el mapa con los puntos del archivo CSV
-            fig.add_trace(go.Scattermapbox(
-                lat=df['lat'],
-                lon=df['lon'],
-                mode='markers',
-                marker=dict(size=10, color='blue')
-            ))
 
-            # Configurar el diseño del mapa
-            fig.update_layout(
-                mapbox=dict(
-                    style='open-street-map',
-                    center=dict(lat=0, lon=0),
-                    zoom=1
-                ),
-                margin=dict(l=0, r=0, t=0, b=0)
-            )
+@app.callback(Output('map-container', 'style'),
+              Output('upload-container', 'style'),
+              Output('output-data-upload', 'figure'),
+              Input('upload-data', 'contents'),
+              State('upload-data', 'filename'))
+def update_output(contents, filename):
+    if contents is None:
+        return {'display': 'none'}, {'display': 'block'}, dash.no_update
 
-            return fig
+    df = parse_contents(contents, filename)
+    fig = go.Figure(go.Scattermapbox(
+        lat=df["Latitud"],  # Ajustar según tus datos
+        lon=df["Longitud"],  # Ajustar según tus datos
+        mode='markers',
+        marker=go.scattermapbox.Marker(size=9)
+    ))
 
-    # Si no se ha cargado un archivo o el archivo no contiene las columnas adecuadas, mostrar un mapa vacío
-    return go.Figure(go.Scattermapbox())
+    fig.update_layout(
+        autosize=True,
+        hovermode='closest',
+        mapbox=dict(
+            accesstoken=mapbox_access_token,
+            #bearing=90, #angulo de rotacion del mapa
+            center=dict(
+                lat=df['Latitud'].mean(),
+                lon=df['Longitud'].mean()
+            ),
+            pitch=0,
+            zoom=3,
+        ),
+        margin={"r":0,"t":0,"l":0,"b":0},
+    )
+
+    return {'display': 'block'}, {'display': 'none'}, fig
 
 if __name__ == '__main__':
     app.run_server(debug=True)
