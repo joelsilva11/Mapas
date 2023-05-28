@@ -7,10 +7,12 @@ from callbacks.callbacks import update_output
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
 app.layout = layout
 
-app.callback(Output('output-data-upload', 'children'),
-              Output('Dropdown1', 'children'),
-              Input('upload-data', 'contents'),
-              State('upload-data', 'filename'))(update_output)
+app.callback(Output('map-container', 'style'),
+             Output('upload-container', 'style'),
+             Output('map-scatter', 'figure'),
+             Output('Dropdown_1', 'children'),
+             Input('upload-csv', 'contents'),
+             State('upload-csv', 'filename'))(update_output)
 
 if __name__ == '__main__':
     app.run_server(debug=True)

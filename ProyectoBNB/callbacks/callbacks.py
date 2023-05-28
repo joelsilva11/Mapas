@@ -5,7 +5,8 @@ import base64
 import io
 import pandas as pd
 import geopandas as gpd
-import plotly.express as px
+#import plotly.express as px
+import plotly.graph_objects as go
 from dash import dcc, html
 from layout.layout import create_dropdown
 
@@ -40,37 +41,45 @@ def toGeojson(df,latitud,longitud):
 
 
 def update_output(contents, filename):
-    if contents:
-        df = parse_contents(contents, filename)
-        if isinstance(df, pd.DataFrame):
-            gdf = toGeojson(df, 'Latitud', 'Longitud')
-            fig = px.scatter_mapbox(
-                gdf,
-                lat=gdf.geometry.y,
-                lon=gdf.geometry.x,
-                #zoom=11,
+    '''Si no se carga el csv el callback retorna:
+    Un contenedor del mapa escondido para css no existe
+    Un contenedor del upload bloqueado y se muestra hasta que se cargue con existo el csv
+    No actualiza el mapa porque no hay puntos evitando errores
+    tampoco actualiza el contenedor del dropdown 
+    '''
+    if contents is None:
+        return {'display': 'none'}, {'display': 'block'}, dash.no_update, dash.no_update
+
+    df = parse_contents(contents, filename)
+
+    if isinstance(df, pd.DataFrame):
+        gdf = toGeojson(df, 'Latitud', 'Longitud')
+        fig = go.Figure(go.Scattermapbox(
+            #gdf,
+            lat=gdf.geometry.y,
+            lon=gdf.geometry.x,
+            mode='markers',
+            marker=go.scattermapbox.Marker(size=9),
+            #zoom=11,
+            #center={'lat': gdf.geometry.y.mean(), 'lon': gdf.geometry.x.mean()},
+            #mapbox_style='carto-positron',
+            #height=850,
+            #hover_data=['Nombre', 'Direccion', 'Clase']
+        ))
+
+        fig.update_layout(
+            autosize=True,
+            hovermode='closest',
+            margin=dict(l=0, r=0, t=0, b=0),
+            mapbox=dict(
+                accesstoken = token,
+                style='dark',
                 center={'lat': gdf.geometry.y.mean(), 'lon': gdf.geometry.x.mean()},
-                #mapbox_style='carto-positron',
-                height=850,
-                hover_data=['Nombre', 'Direccion', 'Clase']
-            )
-            fig.update_layout(
-                autosize=True,
-                margin=dict(l=0, r=0, t=0, b=0),
-                mapbox=dict(
-                    accesstoken = token,
-                    style='dark',
-                    zoom = 11
-                )
-            )
+                zoom = 12
+            ),
             
-            return dcc.Graph(
-                figure=fig,
-                style={
-                    'width': '100%'
-                }
-            ),create_dropdown(df,'TipoAgencia')
-        else:
-            return df,dash.no_update
+        )
+        dp1 = create_dropdown(df,'TipoAgencia')
+        return {'display': 'block'}, {'display': 'none'}, fig, dp1
     else:
-        return dash.no_update, dash.no_update
+        return  {'display': 'none'}, {'display': 'block'}, dash.no_update, dash.no_update
