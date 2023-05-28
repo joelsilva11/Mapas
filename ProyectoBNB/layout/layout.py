@@ -23,12 +23,12 @@ navbar = dbc.Navbar(
 )
 
 #funcion para crear el dropdown aun no existe solo hasta que el callback recibe el csv
-def create_dropdown(df,selected_column):
+def create_dropdown(df,selected_column,titulo='Sin nombre'):
     unique_values = df[selected_column].dropna().unique()
     unique_values = sorted(unique_values, key=str)  # Ordenar los valores
     ############################################## Inicio del Div que contiene el Dropdown
     dropdown = html.Div(children=[
-                    html.Label('Tipo de Agencia'),
+                    html.Label(titulo),
                     dcc.Dropdown(
                                 options=[{'label': str(i), 'value': str(i)} for i in unique_values],
                                 multi=True,
@@ -41,15 +41,21 @@ def create_dropdown(df,selected_column):
                 ], 
                 style={
                     'width': '100%',
-                    'padding': 5,
-                    #'padding-top': 5,
-                    #'padding-right': 5,
-                    #'padding-bottom': 5,
+                    #'padding': 5,
+                    #'padding-top': 2,
+                    'padding-right': 5,
+                    'padding-bottom': 7,
+                    'padding-left': 5,
                     'backgroundColor': '#333'
                 }
                 )
     ############################################## Fin del Div que contiene el Dropdown
     return dropdown
+
+
+
+
+
 
 #############################################################################################################################################
 #Estructura principal de la pagina
@@ -110,18 +116,58 @@ layout = html.Div([
         }
         ),
         ############################################### Fin Div que contiene upload y mapa a la vez
-        ############################################### Inicion Div que contiene al Dropdown
-        html.Div(
-            id='Dropdown_1', 
-            style={
+        ############################################### Inicio Div que contiene los Dropdown
+        html.Div([
+            ############################################### Inicio Div que contiene al Dropdown1
+            html.Div(
+                id='Dropdown_1', 
+                style={
+                'padding-bottom': 5, 
+                }
+            ),
+            ############################################### Fin Div que contiene al Dropdown1
+            ############################################### Inicio Div que contiene al Dropdown2
+            html.Div(
+                id='Dropdown_2',
+                style={
+                'padding-bottom': 5, 
+                } 
+            ),
+            ############################################### Fin Div que contiene al Dropdown2
+            ############################################### Inicio Div que contiene al Dropdown3
+            html.Div(
+                id='Dropdown_3',
+                style={
+                'padding-bottom': 5, 
+                } 
+            ),
+            ############################################### Fin Div que contiene al Dropdown3
+            ############################################### Inicio Div que contiene al Dropdown4
+            html.Div(
+                id='Dropdown_4',
+                style={
+                'padding-bottom': 5, 
+                } 
+            ),
+            ############################################### Fin Div que contiene al Dropdown4
+            ############################################### Inicio Div que contiene al Dropdown5
+            html.Div(
+                id='Dropdown_5',
+                style={
+                'padding-bottom': 5, 
+                } 
+            ),
+            ############################################### Fin Div que contiene al Dropdown5
+        ],
+        style={
                 #'padding': 5,
                 'padding-top': 5,
                 'padding-right': 5,
                 'padding-bottom': 5, 
                 'flex': 1.5
-            }
+        }
         ),
-        ############################################### Fin Div que contiene al Dropdown
+        ############################################### Fin Div que contiene los Dropdown
     ], 
     style={
         'display': 'flex', 

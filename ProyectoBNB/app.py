@@ -11,6 +11,10 @@ app.callback(Output('map-container', 'style'),
              Output('upload-container', 'style'),
              Output('map-scatter', 'figure'),
              Output('Dropdown_1', 'children'),
+             Output('Dropdown_2', 'children'),
+             Output('Dropdown_3', 'children'),
+             Output('Dropdown_4', 'children'),
+             Output('Dropdown_5', 'children'),
              Input('upload-csv', 'contents'),
              State('upload-csv', 'filename'))(update_output)
 

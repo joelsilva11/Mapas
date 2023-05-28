@@ -48,7 +48,7 @@ def update_output(contents, filename):
     tampoco actualiza el contenedor del dropdown 
     '''
     if contents is None:
-        return {'display': 'none'}, {'display': 'block'}, dash.no_update, dash.no_update
+        return {'display': 'none'}, {'display': 'block'}, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
     df = parse_contents(contents, filename)
 
@@ -79,7 +79,11 @@ def update_output(contents, filename):
             ),
             
         )
-        dp1 = create_dropdown(df,'TipoAgencia')
-        return {'display': 'block'}, {'display': 'none'}, fig, dp1
+        dp1 = create_dropdown(df,'TipoAgencia','Tipo Agencia')
+        dp2 = create_dropdown(df,'Banco','Bancos')
+        dp3 = create_dropdown(df,'Clase','Tipo Punto')
+        dp4 = create_dropdown(df,'TipoCentroMedico','Tipo Centro Médico')
+        dp5 = create_dropdown(df,'TipoHotel','Tipo Hospedaje')
+        return {'display': 'block'}, {'display': 'none'}, fig, dp1, dp2, dp3, dp4, dp5
     else:
-        return  {'display': 'none'}, {'display': 'block'}, dash.no_update, dash.no_update
+        return  {'display': 'none'}, {'display': 'block'}, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
