@@ -100,18 +100,15 @@ layout = html.Div([
             ),
             ############################################### Fin Div que contiene upload
             ############################################### Inicio Div que contiene Grafico mapa
-            html.Div([
-                dbc.Spinner(
-                    dcc.Graph(
-                        id='map-scatter', #Id del mapa
-                        style={'height': '90vh'}
-                    )
+            html.Div(
+                dcc.Graph(
+                    id='map-scatter',
+                    style={'height': '90vh'}
                 ),
-            ], 
-            id='map-container', 
-            style={
-                'display': 'none'
-            }
+                id='map-container',
+                style={
+                    'display': 'none'
+                }
             ),
             ############################################### Fin Div que contiene Grafico mapa
         ],

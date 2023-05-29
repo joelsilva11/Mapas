@@ -101,9 +101,13 @@ def load_data_and_dropdowns(contents, filename):
 
 ##########################################################################################################################################################
 #Inicio Callback que crea el mapa y los dropdowns
-def generate_map(dropdown_value_1, df_dict, current_figure):
+
+def generate_map(dropdown_value_1, df_dict, current_figure, current_config):
     if df_dict is None:
         return {'display': 'none'}, {'display': 'block'}, dash.no_update, dash.no_update
+
+    ctx = dash.callback_context
+    triggered_by_dropdown = ctx.triggered and ctx.triggered[0]['prop_id'] == 'Dropdown_1.value'
 
     df = pd.DataFrame(df_dict)
 
@@ -115,15 +119,21 @@ def generate_map(dropdown_value_1, df_dict, current_figure):
     if 'Latitud' not in filtered_df.columns or 'Longitud' not in filtered_df.columns:
         raise dash.exceptions.PreventUpdate
 
-    if current_figure is not None:
+    center = {'lat': filtered_df.Latitud.mean(), 'lon': filtered_df.Longitud.mean()}
+    zoom = 12
+
+    if current_figure is not None and current_config is not None:
         fig = go.Figure(current_figure)
         scatter_trace = fig.data[0]
         scatter_trace.lat = filtered_df['Latitud']
         scatter_trace.lon = filtered_df['Longitud']
         fig.update_traces(scatter_trace, selector=dict(type='scattermapbox'))
+
+        if triggered_by_dropdown:
+            return dash.no_update, dash.no_update, fig, current_config
+        else:
+            return dash.no_update, dash.no_update, fig, current_config
     else:
-        center = {'lat': filtered_df.Latitud.mean(), 'lon': filtered_df.Longitud.mean()}
-        zoom = 12
         fig = create_map_figure(filtered_df, center, zoom)
 
     config = {
@@ -135,6 +145,7 @@ def generate_map(dropdown_value_1, df_dict, current_figure):
     }
 
     return {'display': 'block'}, {'display': 'none'}, fig, config
+
 
 
 
