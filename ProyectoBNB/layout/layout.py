@@ -23,14 +23,16 @@ navbar = dbc.Navbar(
 )
 
 #funcion para crear el dropdown aun no existe solo hasta que el callback recibe el csv
-def create_dropdown(df,selected_column,titulo='Sin nombre'):
+def create_dropdown(df,selected_column,dropdown_id,titulo='Sin nombre'):
     unique_values = df[selected_column].dropna().unique()
     unique_values = sorted(unique_values, key=str)  # Ordenar los valores
     ############################################## Inicio del Div que contiene el Dropdown
     dropdown = html.Div(children=[
                     html.Label(titulo),
                     dcc.Dropdown(
+                                id=dropdown_id,
                                 options=[{'label': str(i), 'value': str(i)} for i in unique_values],
+                                value=None,  # No se selecciona ninguna opción por defecto
                                 multi=True,
                                 style={
                                     'backgroundColor': '#333',
@@ -60,8 +62,11 @@ def create_dropdown(df,selected_column,titulo='Sin nombre'):
 #############################################################################################################################################
 #Estructura principal de la pagina
 #############################################################################################################################################
+
 layout = html.Div([
+    ################################################### Inicio Barra de título
     navbar,
+    ################################################### Fin Barra de título
     ################################################### Inicio Div pantalla principal
     html.Div([
         ############################################### Inicio Div que contiene upload y mapa a la vez
@@ -120,7 +125,16 @@ layout = html.Div([
         html.Div([
             ############################################### Inicio Div que contiene al Dropdown1
             html.Div(
-                id='Dropdown_1', 
+                [
+                dcc.Dropdown(
+                    id='Dropdown_1',
+                    options=[],
+                    value=None,
+                    style={
+                    'display': 'none'
+                    }
+                )],
+                id='Dropdown_container_1', 
                 style={
                 'padding-bottom': 5, 
                 }
@@ -128,7 +142,7 @@ layout = html.Div([
             ############################################### Fin Div que contiene al Dropdown1
             ############################################### Inicio Div que contiene al Dropdown2
             html.Div(
-                id='Dropdown_2',
+                id='Dropdown_container_2',
                 style={
                 'padding-bottom': 5, 
                 } 
@@ -136,7 +150,7 @@ layout = html.Div([
             ############################################### Fin Div que contiene al Dropdown2
             ############################################### Inicio Div que contiene al Dropdown3
             html.Div(
-                id='Dropdown_3',
+                id='Dropdown_container_3',
                 style={
                 'padding-bottom': 5, 
                 } 
@@ -144,7 +158,7 @@ layout = html.Div([
             ############################################### Fin Div que contiene al Dropdown3
             ############################################### Inicio Div que contiene al Dropdown4
             html.Div(
-                id='Dropdown_4',
+                id='Dropdown_container_4',
                 style={
                 'padding-bottom': 5, 
                 } 
@@ -152,7 +166,7 @@ layout = html.Div([
             ############################################### Fin Div que contiene al Dropdown4
             ############################################### Inicio Div que contiene al Dropdown5
             html.Div(
-                id='Dropdown_5',
+                id='Dropdown_container_5',
                 style={
                 'padding-bottom': 5, 
                 } 
@@ -175,7 +189,11 @@ layout = html.Div([
     }
     ),
     ################################################### Fin Div pantalla principal
+    ################################################### Inicio para almacenar el df para que pueda ser usado en otros callbacks
+    dcc.Store(id='intermediate-value'),
+    ################################################### Fin para almacenar el df para que pueda ser usado en otros callbacks
 ])
+
 #############################################################################################################################################
 #Estructura principal de la pagina
 #############################################################################################################################################
