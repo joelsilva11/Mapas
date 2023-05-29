@@ -43,7 +43,7 @@ def toGeojson(df,latitud,longitud):
 
 
 ###################################################################### Funcion para crear la figura del mapa
-def create_map_figure(df):
+def create_map_figure(df,center, zoom):
     fig = go.Figure(go.Scattermapbox(
         #gdf,
         lat= df.Latitud,
@@ -65,7 +65,8 @@ def create_map_figure(df):
             accesstoken = token,
             style='dark',
             center={'lat': df.Latitud.mean(), 'lon': df.Longitud.mean()},
-            zoom = 12
+            zoom = zoom,
+            uirevision = 'constant' # agrega esta línea
         ),
         
     )
@@ -100,34 +101,42 @@ def load_data_and_dropdowns(contents, filename):
 
 ##########################################################################################################################################################
 #Inicio Callback que crea el mapa y los dropdowns
-##########################################################################################################################################################
-def generate_map(dropdown_value_1, df_dict):
-    '''Si no se carga el csv el callback retorna:
-    Un contenedor del mapa escondido para css no existe
-    Un contenedor del upload bloqueado y se muestra hasta que se cargue con existo el csv
-    No actualiza el mapa porque no hay puntos evitando errores
-    tampoco actualiza el contenedor del dropdown 
-    '''
+def generate_map(dropdown_value_1, df_dict, current_figure):
     if df_dict is None:
-        return {'display': 'none'}, {'display': 'block'}, dash.no_update
+        return {'display': 'none'}, {'display': 'block'}, dash.no_update, dash.no_update
 
-    # Convierte el dict de vuelta a un DataFrame
     df = pd.DataFrame(df_dict)
-    print('Valor de dp', dropdown_value_1)
-    # Si dropdown_value_1 es None, no filtra el DataFrame
+
     if dropdown_value_1 is None or len(dropdown_value_1) == 0:
         filtered_df = df
     else:
-        print(dropdown_value_1)
         filtered_df = df[df['Clase'].isin(dropdown_value_1)]
 
-    # Verifica si el DataFrame tiene las columnas requeridas
     if 'Latitud' not in filtered_df.columns or 'Longitud' not in filtered_df.columns:
         raise dash.exceptions.PreventUpdate
 
-    #gdf = toGeojson(df, 'Latitud', 'Longitud')
-    fig = create_map_figure(filtered_df)
-    return {'display': 'block'}, {'display': 'none'}, fig
+    if current_figure is not None:
+        fig = go.Figure(current_figure)
+        scatter_trace = fig.data[0]
+        scatter_trace.lat = filtered_df['Latitud']
+        scatter_trace.lon = filtered_df['Longitud']
+        fig.update_traces(scatter_trace, selector=dict(type='scattermapbox'))
+    else:
+        center = {'lat': filtered_df.Latitud.mean(), 'lon': filtered_df.Longitud.mean()}
+        zoom = 12
+        fig = create_map_figure(filtered_df, center, zoom)
+
+    config = {
+        'scrollZoom': True,
+        'displayModeBar': True,
+        'editable': True,
+        'displaylogo': False,
+        'autosizable': True,
+    }
+
+    return {'display': 'block'}, {'display': 'none'}, fig, config
+
+
 
 ##########################################################################################################################################################
 #Inicio Callback que modifica el mapa con los dropdowns

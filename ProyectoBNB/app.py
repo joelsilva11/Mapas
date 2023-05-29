@@ -21,11 +21,15 @@ app.callback(
 )(load_data_and_dropdowns)
 
 #este callback se ejecuta una sola vez para crear el mapa y los filtros
-app.callback(Output('map-container', 'style'),
-             Output('upload-container', 'style'),
-             Output('map-scatter', 'figure'),
-             Input('Dropdown_1', 'value'),
-             Input('intermediate-value', 'data'))(generate_map)
+app.callback(
+    [Output('map-container', 'style'),
+     Output('upload-container', 'style'),
+     Output('map-scatter', 'figure'),
+     Output('map-scatter', 'config')],
+    [Input('Dropdown_1', 'value'),
+     Input('intermediate-value', 'data'),
+     State('map-scatter', 'figure')]
+)(generate_map)
 
 #este callback se ejecuta cuando se filtran datos por medio de los dropdowns
 
