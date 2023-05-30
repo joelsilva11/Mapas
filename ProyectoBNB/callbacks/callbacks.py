@@ -43,18 +43,23 @@ def toGeojson(df,latitud,longitud):
 
 
 ###################################################################### Funcion para crear la figura del mapa
-def create_map_figure(df,center, zoom):
+def create_map_figure(df):
+    
     fig = go.Figure(go.Scattermapbox(
-        #gdf,
         lat= df.Latitud,
         lon= df.Longitud,
         mode='markers',
-        marker=go.scattermapbox.Marker(size=9),
+        marker=go.scattermapbox.Marker(#size=7,
+                                       color=df['Color']),
         #zoom=11,
         #center={'lat': gdf.geometry.y.mean(), 'lon': gdf.geometry.x.mean()},
         #mapbox_style='carto-positron',
         #height=850,
-        #hover_data=['Nombre', 'Direccion', 'Clase']
+        hovertemplate=
+        '<b>Latitud</b>: %{lat}<br>' +
+        '<b>Longitud</b>: %{lon}<br>' +
+        '<b>Tipo de punto</b>: %{customdata[0]}<extra></extra>',
+        customdata=df[['Clase']].values
     ))
 
     fig.update_layout(
@@ -65,7 +70,7 @@ def create_map_figure(df,center, zoom):
             accesstoken = token,
             style='dark',
             center={'lat': df.Latitud.mean(), 'lon': df.Longitud.mean()},
-            zoom = zoom,
+            zoom = 12,
             uirevision = 'constant' # agrega esta línea
         ),
         
@@ -79,6 +84,7 @@ def create_map_figure(df,center, zoom):
 #Inicio Callback que almacena el df y crea los dropdowns
 ##########################################################################################################################################################
 def load_data_and_dropdowns(contents, filename):
+    colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf', '#999999']
     if contents is None:
         return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update
 
@@ -91,6 +97,11 @@ def load_data_and_dropdowns(contents, filename):
         dp3 = create_dropdown(df,'TipoAgencia','Dropdown_3','Tipo Agencia')
         dp4 = create_dropdown(df,'TipoCentroMedico','Dropdown_4','Tipo Centro Médico')
         dp5 = create_dropdown(df,'TipoHotel','Dropdown_5','Tipo Hospedaje')
+
+        # Generar la columna de colores según la categoría
+        categories = df['Clase'].unique()
+        color_mapping = {category: colors[i % len(colors)] for i, category in enumerate(categories)}
+        df['Color'] = df['Clase'].map(color_mapping)
         return df.to_dict('records'), dp1, dp2, dp3, dp4, dp5
     else:
         raise dash.exceptions.PreventUpdate
@@ -111,30 +122,32 @@ def generate_map(dropdown_value_1, df_dict, current_figure, current_config):
 
     df = pd.DataFrame(df_dict)
 
+    #si el trigger fue por el dropdown1 entonces el df se filtra y si no el df es el mismo
     if dropdown_value_1 is None or len(dropdown_value_1) == 0:
         filtered_df = df
     else:
         filtered_df = df[df['Clase'].isin(dropdown_value_1)]
 
+
+    # esta es un verificacion de refuerzo para ver si el csv tien columnas latitud y longitud si no tiene sale del callback
     if 'Latitud' not in filtered_df.columns or 'Longitud' not in filtered_df.columns:
         raise dash.exceptions.PreventUpdate
 
-    center = {'lat': filtered_df.Latitud.mean(), 'lon': filtered_df.Longitud.mean()}
-    zoom = 12
-
+    #Comprueba si existe una figura, si existe solo actualiza los puntos si no pasa crear la figura
     if current_figure is not None and current_config is not None:
         fig = go.Figure(current_figure)
         scatter_trace = fig.data[0]
         scatter_trace.lat = filtered_df['Latitud']
         scatter_trace.lon = filtered_df['Longitud']
+        scatter_trace.marker = dict(color=filtered_df['Color'])  # Actualizar los colores
         fig.update_traces(scatter_trace, selector=dict(type='scattermapbox'))
 
         if triggered_by_dropdown:
             return dash.no_update, dash.no_update, fig, current_config
-        else:
-            return dash.no_update, dash.no_update, fig, current_config
+        #else:
+            #return dash.no_update, dash.no_update, fig, current_config
     else:
-        fig = create_map_figure(filtered_df, center, zoom)
+        fig = create_map_figure(filtered_df)
 
     config = {
         'scrollZoom': True,
