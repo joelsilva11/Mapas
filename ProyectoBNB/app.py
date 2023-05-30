@@ -1,8 +1,8 @@
 import dash
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
-from layout.layout import layout, navbar
-from callbacks.callbacks import load_data_and_dropdowns, generate_map
+from layout.layout import layout
+from callbacks.callbacks import load_data_and_dropdowns, generate_map, generate_gson
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
 #suppress_callback_exceptions=True
@@ -16,6 +16,7 @@ app.callback(
     Output('Dropdown_container_3', 'children'),
     Output('Dropdown_container_4', 'children'),
     Output('Dropdown_container_5', 'children'),
+    Output('kde-button', 'style'),
     Input('upload-csv', 'contents'),
     State('upload-csv', 'filename')
 )(load_data_and_dropdowns)
@@ -32,12 +33,18 @@ app.callback(
         Input('Dropdown_1', 'value'),
         State('intermediate-value', 'data'),
         State('map-scatter', 'figure'),
-        State('map-scatter', 'config')
+        State('map-scatter', 'config'),
+        Input('kde-output', 'data')
     ]
 )(generate_map)
 
-#este callback se ejecuta cuando se filtran datos por medio de los dropdowns
-
+#este callback se ejecuta cuando se el usuario quiere generar un KDE
+app.callback(
+    Output('kde-output', 'data'),
+    [Input('kde-button', 'n_clicks')],
+    [State('intermediate-value', 'data'),
+     State('Dropdown_1', 'value')]
+)(generate_gson)
 
 if __name__ == '__main__':
     app.run_server(debug=True)

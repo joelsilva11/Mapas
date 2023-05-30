@@ -189,6 +189,12 @@ layout = html.Div([
     ################################################### Inicio para almacenar el df para que pueda ser usado en otros callbacks
     dcc.Store(id='intermediate-value'),
     ################################################### Fin para almacenar el df para que pueda ser usado en otros callbacks
+    ################################################### Inicio para almacenar el KDE en un geojson
+    dcc.Store(id='kde-output'),
+    ################################################### Fin para almacenar el KDE en un geojson
+    ################################################### Inicio Boton que genera el KDE
+    html.Button('Run KDE Analysis', id='kde-button', n_clicks=0, style={'display': 'none'})
+    ################################################### Fin Boton que genera el KDE
 ])
 
 #############################################################################################################################################
