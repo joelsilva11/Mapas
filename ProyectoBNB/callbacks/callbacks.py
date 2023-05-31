@@ -268,25 +268,45 @@ def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_
         raise dash.exceptions.PreventUpdate
 
     #si el trigger fue por el dropdown1 entonces el df se filtra y si no el df es el mismo
+    #filtra los tipo de puntos
     if dropdown_value_1 is None or len(dropdown_value_1) == 0:
         df_t = df
     else:
         df_t = df[df['Clase'].isin(dropdown_value_1)]
 
-    _df_agn = df_t[df_t['Clase'] == 'Agencia']
-    _df_atm = df_t[df_t['Clase']== 'ATM']
+    #filtra los Bancos
+    if dropdown_value_2 is None or len(dropdown_value_2) == 0:
+        df_banco = df_t
+    else:
+        df_banco = df_t[df_t['Banco'].isin(dropdown_value_2)]
+
+
+    _df_agn = df_banco[df_banco['Clase'] == 'Agencia']
+    _df_atm = df_banco[df_banco['Clase']== 'ATM']
     df_poi = df_t[df_t['Clase'].isin(['Centro Comercial','Mercado','Supermercado','Restaurante','Universidad'])]
     _df_hot = df_t[df_t['Clase']== 'Hotel']
     _df_cem = df_t[df_t['Clase']== 'Centro Médico']
 
+    #filtra los tipo de agencias
+    if dropdown_value_3 is None or len(dropdown_value_3) == 0:
+        df_agn =_df_agn
+    else:
+        df_agn = _df_agn[_df_agn['TipoAgencia'].isin(dropdown_value_3)]
+
+    df_atm = _df_atm
+
+    #filtra los tipo de centros medicos
+    if dropdown_value_4 is None or len(dropdown_value_4) == 0:
+        df_cem = _df_cem
+    else:
+        df_cem = _df_cem[_df_cem['TipoCentroMedico'].isin(dropdown_value_4)]
+
+    #filtra los tipo de hotel
     if dropdown_value_5 is None or len(dropdown_value_5) == 0:
         df_hot = _df_hot
     else:
         df_hot = _df_hot[_df_hot['TipoHotel'].isin(dropdown_value_5)]
 
-    df_agn =_df_agn
-    df_atm =_df_atm
-    df_cem =_df_cem
 
     filtered_df = pd.concat([df_agn,df_atm,df_poi,df_hot,df_cem])
 
@@ -301,7 +321,7 @@ def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_
 #Inicio Callback desarrolla el KDE
 ##########################################################################################################################################################
 
-def generate_gson(n_clicks, df_dict, dropdown_value_1):
+def generate_gson(n_clicks, df_dict):
 
     if n_clicks is None or df_dict is None:
         raise dash.exceptions.PreventUpdate
@@ -309,14 +329,11 @@ def generate_gson(n_clicks, df_dict, dropdown_value_1):
     #genero el df
     df = pd.DataFrame(df_dict)
     
-    #si el trigger fue por el dropdown1 entonces el df se filtra y si no el df es el mismo
-    if dropdown_value_1 is None or len(dropdown_value_1) == 0:
-        filtered_df = df
-    else:
-        filtered_df = df[df['Clase'].isin(dropdown_value_1)]
+    if len(df)<2:
+        raise dash.exceptions.PreventUpdate
     
     levels = 12  # Número de niveles de contorno
-    kde_gdf = perform_kde(filtered_df,levels)
+    kde_gdf = perform_kde(df,levels)
 
     #convierte el geodataframe en json
     kde_geojson = kde_gdf.to_json()

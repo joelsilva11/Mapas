@@ -41,8 +41,7 @@ app.callback(
 app.callback(
     Output('kde-output', 'data'),
     [Input('kde-button', 'n_clicks')],
-    [State('intermediate-value', 'data'),
-     State('Dropdown_1', 'value')]
+    State('filter-value', 'data')
 )(generate_gson)
 
 #este callback se ejecuta para modificar el dataframe
