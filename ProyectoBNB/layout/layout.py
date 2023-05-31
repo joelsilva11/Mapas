@@ -120,11 +120,11 @@ layout = html.Div([
         ############################################### Fin Div que contiene upload y mapa a la vez
         ############################################### Inicio Div que contiene los Dropdown
         html.Div([
-            ############################################### Inicio Div que contiene al Dropdown1
+            ############################################### Inicio Div que contiene al Dropdown1 que filtra Clase
             html.Div(
                 [
                 dcc.Dropdown(
-                    id='Dropdown_1',
+                    id='Dropdown_1', #debe existir un dropdown antes de mostrarse para evitar errores
                     options=[],
                     value=None,
                     style={
@@ -137,36 +137,72 @@ layout = html.Div([
                 }
             ),
             ############################################### Fin Div que contiene al Dropdown1
-            ############################################### Inicio Div que contiene al Dropdown2
+            ############################################### Inicio Div que contiene al Dropdown2 que filtra bancos
             html.Div(
-                id='Dropdown_container_2',
+                [
+                dcc.Dropdown(
+                    id='Dropdown_2', #debe existir un dropdown antes de mostrarse para evitar errores
+                    options=[],
+                    value=None,
+                    style={
+                    'display': 'none'
+                    }
+                )],
+                id='Dropdown_container_2', 
                 style={
                 'padding-bottom': 5, 
-                } 
+                }
             ),
             ############################################### Fin Div que contiene al Dropdown2
-            ############################################### Inicio Div que contiene al Dropdown3
+            ############################################### Inicio Div que contiene al Dropdown3 que filtra tipo de agencia
             html.Div(
-                id='Dropdown_container_3',
+                [
+                dcc.Dropdown(
+                    id='Dropdown_3', #debe existir un dropdown antes de mostrarse para evitar errores
+                    options=[],
+                    value=None,
+                    style={
+                    'display': 'none'
+                    }
+                )],
+                id='Dropdown_container_3', 
                 style={
                 'padding-bottom': 5, 
-                } 
+                }
             ),
             ############################################### Fin Div que contiene al Dropdown3
-            ############################################### Inicio Div que contiene al Dropdown4
+            ############################################### Inicio Div que contiene al Dropdown4 que filtra tipo Centro médico
             html.Div(
-                id='Dropdown_container_4',
+                [
+                dcc.Dropdown(
+                    id='Dropdown_4', #debe existir un dropdown antes de mostrarse para evitar errores
+                    options=[],
+                    value=None,
+                    style={
+                    'display': 'none'
+                    }
+                )],
+                id='Dropdown_container_4', 
                 style={
                 'padding-bottom': 5, 
-                } 
+                }
             ),
             ############################################### Fin Div que contiene al Dropdown4
-            ############################################### Inicio Div que contiene al Dropdown5
+            ############################################### Inicio Div que contiene al Dropdown5 que filtra tipo hospedaje
             html.Div(
-                id='Dropdown_container_5',
+                [
+                dcc.Dropdown(
+                    id='Dropdown_5', #debe existir un dropdown antes de mostrarse para evitar errores
+                    options=[],
+                    value=None,
+                    style={
+                    'display': 'none'
+                    }
+                )],
+                id='Dropdown_container_5', 
                 style={
                 'padding-bottom': 5, 
-                } 
+                }
             ),
             ############################################### Fin Div que contiene al Dropdown5
         ],
@@ -193,8 +229,11 @@ layout = html.Div([
     dcc.Store(id='kde-output'),
     ################################################### Fin para almacenar el KDE en un geojson
     ################################################### Inicio Boton que genera el KDE
-    html.Button('Run KDE Analysis', id='kde-button', n_clicks=0, style={'display': 'none'})
+    html.Button('Run KDE Analysis', id='kde-button', n_clicks=0, style={'display': 'none'}),
     ################################################### Fin Boton que genera el KDE
+    ################################################### Inicio para almacenar el df que sera filtado por los dropdowns
+    dcc.Store(id='filter-value'),
+    ################################################### Fin para almacenar el df que sera filtado por los dropdowns
 ])
 
 #############################################################################################################################################

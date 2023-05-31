@@ -2,7 +2,7 @@ import dash
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 from layout.layout import layout
-from callbacks.callbacks import load_data_and_dropdowns, generate_map, generate_gson
+from callbacks.callbacks import load_data_and_dropdowns, generate_map, generate_gson, filter_df
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
 #suppress_callback_exceptions=True
@@ -30,8 +30,7 @@ app.callback(
         Output('map-scatter', 'config')
     ],
     [
-        Input('Dropdown_1', 'value'),
-        State('intermediate-value', 'data'),
+        Input('filter-value', 'data'),
         State('map-scatter', 'figure'),
         State('map-scatter', 'config'),
         Input('kde-output', 'data')
@@ -45,6 +44,21 @@ app.callback(
     [State('intermediate-value', 'data'),
      State('Dropdown_1', 'value')]
 )(generate_gson)
+
+#este callback se ejecuta para modificar el dataframe
+app.callback(
+    #[
+        Output('filter-value', 'data'),
+    #],
+    [
+        Input('Dropdown_1', 'value'),
+        Input('Dropdown_2', 'value'),
+        Input('Dropdown_3', 'value'),
+        Input('Dropdown_4', 'value'),
+        Input('Dropdown_5', 'value'),
+        State('intermediate-value', 'data')
+    ]
+)(filter_df)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
