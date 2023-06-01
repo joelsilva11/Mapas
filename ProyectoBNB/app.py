@@ -16,12 +16,13 @@ app.callback(
     Output('Dropdown_container_3', 'children'),
     Output('Dropdown_container_4', 'children'),
     Output('Dropdown_container_5', 'children'),
-    Output('kde-button', 'style'),
+    Output('Dropdown_container_6', 'children'),
+    Output('kde-button_container', 'style'),
     Input('upload-csv', 'contents'),
     State('upload-csv', 'filename')
 )(load_data_and_dropdowns)
 
-#este callback se ejecuta una sola vez para crear el mapa y los filtros
+#este callback se ejecuta una sola vez para crear el mapa
 app.callback(
     [
         Output('map-container', 'style'),
@@ -46,18 +47,20 @@ app.callback(
 
 #este callback se ejecuta para modificar el dataframe
 app.callback(
-    #[
         Output('filter-value', 'data'),
-    #],
     [
         Input('Dropdown_1', 'value'),
         Input('Dropdown_2', 'value'),
         Input('Dropdown_3', 'value'),
         Input('Dropdown_4', 'value'),
         Input('Dropdown_5', 'value'),
+        Input('Dropdown_6', 'value'),
         State('intermediate-value', 'data')
     ]
 )(filter_df)
+
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)

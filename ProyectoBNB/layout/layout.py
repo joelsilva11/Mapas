@@ -8,7 +8,14 @@ navbar = dbc.Navbar(
         dbc.Row(
             [
                 dbc.Col(html.Img(src=PLOTLY_LOGO, height="60px"),width=1),
-                dbc.Col(dbc.NavbarBrand("VISUALIZACIÓN DE MAPAS DE CALOR CON CONTORNOS DE DENSIDAD", className="ms-2",style={'font-size': '36px'}), width=8)
+                dbc.Col(dbc.NavbarBrand("VISUALIZACIÓN DE MAPAS DE CALOR CON CONTORNOS DE DENSIDAD", className="ms-2",style={'font-size': '36px'}), width=9),
+                dbc.Col(
+                    html.Div(
+                        dbc.Button('Run KDE Analysis', id='kde-button', n_clicks=0, style={'width': '100%','height': '50px'}, color='primary'),
+                        id='kde-button_container', 
+                        style={'display': 'none'},
+                    )
+                ),
             ],
             align="center",
             style={
@@ -171,6 +178,23 @@ layout = html.Div([
                 }
             ),
             ############################################### Fin Div que contiene al Dropdown3
+            ############################################### Inicio Div que contiene al Dropdown6 que filtra tipo de ATM
+            html.Div(
+                [
+                dcc.Dropdown(
+                    id='Dropdown_6', #debe existir un dropdown antes de mostrarse para evitar errores
+                    options=[],
+                    value=None,
+                    style={
+                    'display': 'none'
+                    }
+                )],
+                id='Dropdown_container_6', 
+                style={
+                'padding-bottom': 5, 
+                }
+            ),
+            ############################################### Fin Div que contiene al Dropdown6
             ############################################### Inicio Div que contiene al Dropdown4 que filtra tipo Centro médico
             html.Div(
                 [
@@ -205,8 +229,12 @@ layout = html.Div([
                 }
             ),
             ############################################### Fin Div que contiene al Dropdown5
+            ############################################### Inicio Div que contiene al Boton que ejecuta el KDE
+            
+            ############################################### Fin Div que contiene al Boton que ejecuta el KDE
         ],
         style={
+                'flex-direction': 'column',
                 #'padding': 5,
                 'padding-top': 5,
                 'padding-right': 5,
@@ -229,7 +257,7 @@ layout = html.Div([
     dcc.Store(id='kde-output'),
     ################################################### Fin para almacenar el KDE en un geojson
     ################################################### Inicio Boton que genera el KDE
-    html.Button('Run KDE Analysis', id='kde-button', n_clicks=0, style={'display': 'none'}),
+    
     ################################################### Fin Boton que genera el KDE
     ################################################### Inicio para almacenar el df que sera filtado por los dropdowns
     dcc.Store(id='filter-value'),

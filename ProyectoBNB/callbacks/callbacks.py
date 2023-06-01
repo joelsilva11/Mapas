@@ -61,7 +61,7 @@ def create_map_figure(df, polygon_geojson=None):
             geojson=polygon_geojson,
             locations=gdf.index.astype(str),
             z=gdf['Nivel'], # Usar la columna '0' como valores de color 
-            colorscale='BuPu',
+            colorscale='Turbo',
             hoverinfo='all', # Muestra toda la información en el hover
             hovertemplate='Nivel: %{z}<extra></extra>', # Personaliza el hover para mostrar solo la información que deseas
             #marker_opacity=0.2,
@@ -80,8 +80,11 @@ def create_map_figure(df, polygon_geojson=None):
         lat= df.Latitud,
         lon= df.Longitud,
         mode='markers',
-        marker=go.scattermapbox.Marker(#size=7,
-                                       color=df['Color']),
+        marker=go.scattermapbox.Marker(
+            size=10,
+            color=df['Color'],
+        ),
+        
         hovertemplate=
         '<b>Latitud</b>: %{lat}<br>' +
         '<b>Longitud</b>: %{lon}<br>' +
@@ -160,7 +163,7 @@ def perform_kde(df, contour_levels=12):
 def load_data_and_dropdowns(contents, filename):
     colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf', '#999999']
     if contents is None:
-        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
     df = parse_contents(contents, filename)
 
@@ -171,13 +174,16 @@ def load_data_and_dropdowns(contents, filename):
         dp3 = create_dropdown(df,'TipoAgencia','Dropdown_3','Tipo Agencia')
         dp4 = create_dropdown(df,'TipoCentroMedico','Dropdown_4','Tipo Centro Médico')
         dp5 = create_dropdown(df,'TipoHotel','Dropdown_5','Tipo Hospedaje')
+        dp6 = create_dropdown(df,'DepositoATM','Dropdown_6','ATM con depósito')
 
         # Generar la columna de colores según la categoría
         categories = df['Clase'].unique()
         color_mapping = {category: colors[i % len(colors)] for i, category in enumerate(categories)}
         df['Color'] = df['Clase'].map(color_mapping)
+        
+        #retorna e
 
-        return df.to_dict('records'), dp1, dp2, dp3, dp4, dp5,{'display': 'block'}
+        return df.to_dict('records'), dp1, dp2, dp3, dp4, dp5, dp6,{'display': 'block','padding-left': 20}
     else:
         raise dash.exceptions.PreventUpdate
 ##########################################################################################################################################################
@@ -189,7 +195,6 @@ def load_data_and_dropdowns(contents, filename):
 #Inicio Callback que crea el mapa
 ##########################################################################################################################################################
 def generate_map(df_dict, current_figure, current_config, kde_output):
-    
     # Si no se creo el df la funcion se sale directamente
     if df_dict is None:
         return {'display': 'none'}, {'display': 'block'}, dash.no_update, dash.no_update
@@ -226,7 +231,11 @@ def generate_map(df_dict, current_figure, current_config, kde_output):
         if scatter_trace is not None:
             scatter_trace.lat = filtered_df['Latitud']
             scatter_trace.lon = filtered_df['Longitud']
-            scatter_trace.marker = dict(color=filtered_df['Color'])  # Actualizar los colores
+            scatter_trace.marker = dict(
+                size=10,  # Actualizar el tamaño de los puntos
+                color=filtered_df['Color'],    
+            )  # Actualizar los colores
+            scatter_trace.customdata = filtered_df[['Clase']].values  # Actualizar las clases
             fig.update_traces(scatter_trace, selector=dict(type='scattermapbox'))
             #print('siempre estoy aqui?')
             
@@ -251,7 +260,7 @@ def generate_map(df_dict, current_figure, current_config, kde_output):
 ##########################################################################################################################################################
 #Inicio Callback para modificar el dataframe
 ##########################################################################################################################################################
-def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_4,dropdown_value_5,df_dict):
+def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_4,dropdown_value_5,dropdown_value_6,df_dict):
     
     # Si no se creo el df la funcion se sale directamente
     if df_dict is None:
@@ -261,7 +270,7 @@ def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_
     df = pd.DataFrame(df_dict)
 
     print('Dropdown Clase: ',dropdown_value_1)
-    print('Dropdown Hotel: ',dropdown_value_5)
+    print('Dropdown Hotel: ',dropdown_value_6)
 
     # esta es un verificacion de refuerzo para ver si el csv tien columnas latitud y longitud si no tiene sale del callback
     if 'Latitud' not in df.columns or 'Longitud' not in df.columns:
@@ -293,7 +302,11 @@ def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_
     else:
         df_agn = _df_agn[_df_agn['TipoAgencia'].isin(dropdown_value_3)]
 
-    df_atm = _df_atm
+    #filtra los tipo de ATM
+    if dropdown_value_6 is None or len(dropdown_value_6) == 0:
+        df_atm = _df_atm
+    else:
+        df_atm = _df_atm[_df_atm['DepositoATM'].isin(dropdown_value_6)]
 
     #filtra los tipo de centros medicos
     if dropdown_value_4 is None or len(dropdown_value_4) == 0:
@@ -309,13 +322,20 @@ def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_
 
 
     filtered_df = pd.concat([df_agn,df_atm,df_poi,df_hot,df_cem])
-
+    print(filtered_df.Peso.unique())
     if isinstance(filtered_df, pd.DataFrame):
         return filtered_df.to_dict('records')
     else:
         raise dash.exceptions.PreventUpdate
 ##########################################################################################################################################################
 #Fin Callback para modificar el dataframe
+##########################################################################################################################################################
+##########################################################################################################################################################
+#Inicio Callback que crea el mapa
+##########################################################################################################################################################
+
+##########################################################################################################################################################
+#Inicio Callback que crea el mapa
 ##########################################################################################################################################################
 ##########################################################################################################################################################
 #Inicio Callback desarrolla el KDE

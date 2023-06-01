@@ -1,14 +1,3 @@
-import os
-os.environ['USE_PYGEOS'] = '0'
-import geopandas as gpd
-from dash import Dash, html, dcc
-import pandas as pd
-import dash
-import folium
-from folium.plugins import HeatMap
-import numpy as np
-from branca.colormap import linear
-
 import dash
 from dash import Dash, html, dcc
 from dash.dependencies import Input, Output
@@ -17,7 +6,8 @@ import pandas as pd
 import dash_leaflet as dl
 import random
 
-
+url = 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
+attribution = '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> '
 # Generar puntos aleatorios con valores en otra columna
 random_points = []
 for _ in range(100):
@@ -43,8 +33,7 @@ app.layout = html.Div([
     dl.Map(
         [
             dl.TileLayer(
-                'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-            attribution='Map data &copy; Google Maps'),
+                url=url, maxZoom=20, attribution=attribution),
             dl.MarkerClusterGroup(
                 id='marker-cluster',
                 children=[
