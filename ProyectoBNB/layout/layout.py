@@ -3,19 +3,22 @@ import dash_bootstrap_components as dbc
 
 PLOTLY_LOGO = "https://raw.githubusercontent.com/joelsilva11/Mapas/main/logo-blanco.png"
 
+###################################################################crea la barra de titulo
 navbar = dbc.Navbar(
     [
         dbc.Row(
             [
                 dbc.Col(html.Img(src=PLOTLY_LOGO, height="60px"),width=1),
                 dbc.Col(dbc.NavbarBrand("VISUALIZACIÓN DE MAPAS DE CALOR CON CONTORNOS DE DENSIDAD", className="ms-2",style={'font-size': '36px'}), width=9),
+                ############################################### Inicio Div que contiene al Boton que ejecuta el KDE
                 dbc.Col(
                     html.Div(
-                        dbc.Button('Run KDE Analysis', id='kde-button', n_clicks=0, style={'width': '100%','height': '50px'}, color='primary'),
+                        dbc.Button('Run KDE Analysis', id='kde-button', n_clicks=0, style={'width': '100%','height': '50px'}, color="success"),
                         id='kde-button_container', 
                         style={'display': 'none'},
                     )
                 ),
+                ############################################### Fin Div que contiene al Boton que ejecuta el KDE
             ],
             align="center",
             style={
@@ -28,6 +31,18 @@ navbar = dbc.Navbar(
     color="dark",
     dark=True,
 )
+###################################################################funciones para crear los inputs
+def generate_input_p (id_input):
+    return dbc.InputGroup(children=[
+                dbc.InputGroupText("Peso"),
+                dcc.Input(id=id_input, type='number', min=0, max=10,required=True,debounce=True,step=1, value=''),
+            ])
+def generate_input_r (id_input):
+    return dbc.InputGroup(children=[
+                dbc.InputGroupText("Radio"),
+                dcc.Input(id=id_input, type='number', min=0, max=500,required=True,debounce=True,step=1, value=''),
+            ])
+
 
 #funcion para crear el dropdown aun no existe solo hasta que el callback recibe el csv
 def create_dropdown(df,selected_column,dropdown_id,titulo='Sin nombre'):
@@ -127,6 +142,13 @@ layout = html.Div([
         ############################################### Fin Div que contiene upload y mapa a la vez
         ############################################### Inicio Div que contiene los Dropdown
         html.Div([
+            ############################################### Inicio Div que contiene al Boton que oculta el canvas
+            html.Div(
+                        dbc.Button('Editar parámetros', id='open-offcanvas', n_clicks=0, style={'width': '100%','height': '50px'}, color='primary'),
+                        id='offcanvas-button-container', 
+                        style={'display': 'none'},
+                    ),
+            ############################################### Fin Div que contiene al Boton que oculta el canvas
             ############################################### Inicio Div que contiene al Dropdown1 que filtra Clase
             html.Div(
                 [
@@ -229,9 +251,6 @@ layout = html.Div([
                 }
             ),
             ############################################### Fin Div que contiene al Dropdown5
-            ############################################### Inicio Div que contiene al Boton que ejecuta el KDE
-            
-            ############################################### Fin Div que contiene al Boton que ejecuta el KDE
         ],
         style={
                 'flex-direction': 'column',
@@ -249,6 +268,38 @@ layout = html.Div([
         'flex-direction': 'row'
     }
     ),
+    ############################################### Inicio de la ventana desplegable
+    dbc.Offcanvas(
+        [
+            html.H6("Banco BNB"),
+            generate_input_p('input-peso-bnb'),
+            generate_input_r('input-radio-bnb'),
+            html.H6("Otros Bancos", style={'padding-top': 10}),
+            generate_input_p('input-peso-ob'),
+            generate_input_r('input-radio-ob'),
+            html.H6("ATMs", style={'padding-top': 10}),
+            generate_input_p('input-peso-at'),
+            generate_input_r('input-radio-at'),
+            html.H6("SuperMercados", style={'padding-top': 10}),
+            generate_input_p('input-peso-sm'),
+            generate_input_r('input-radio-sm'),
+            html.H6("Centros Médicos", style={'padding-top': 10}),
+            generate_input_p('input-peso-cm'),
+            generate_input_r('input-radio-cm'),
+            html.H6("Hoteles", style={'padding-top': 10}),
+            generate_input_p('input-peso-ht'),
+            generate_input_r('input-radio-ht'),
+            html.H6("Otros", style={'padding-top': 10}),
+            generate_input_p('input-peso-ot'),
+            generate_input_r('input-radio-ot'),
+            dbc.Button('Editar', id='edit-button', n_clicks=0),
+        ],
+        id="offcanvas",
+        title="Editar Pesos y Radios",
+        is_open=False,
+        placement='end',
+    ),
+    ############################################### Fin de la ventana desplegable
     ################################################### Fin Div pantalla principal
     ################################################### Inicio para almacenar el df para que pueda ser usado en otros callbacks
     dcc.Store(id='intermediate-value'),
@@ -256,9 +307,6 @@ layout = html.Div([
     ################################################### Inicio para almacenar el KDE en un geojson
     dcc.Store(id='kde-output'),
     ################################################### Fin para almacenar el KDE en un geojson
-    ################################################### Inicio Boton que genera el KDE
-    
-    ################################################### Fin Boton que genera el KDE
     ################################################### Inicio para almacenar el df que sera filtado por los dropdowns
     dcc.Store(id='filter-value'),
     ################################################### Fin para almacenar el df que sera filtado por los dropdowns

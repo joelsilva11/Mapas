@@ -42,13 +42,9 @@ def parse_contents(contents, filename):
         ])
 
     return df
-
-
 ###################################################################### Funcion para crear un geodataframe a partir del csv
 def toGeojson(df,latitud,longitud):
     return gpd.GeoDataFrame(df,geometry=gpd.points_from_xy(df[longitud],df[latitud],crs="EPSG:4326"))
-
-
 ###################################################################### Funcion para crear la figura del mapa
 def create_map_figure(df, polygon_geojson=None):
 
@@ -157,13 +153,17 @@ def perform_kde(df, contour_levels=12):
 
     return gdf_polygons.to_crs(epsg=4326)
 
+
+
+
 ##########################################################################################################################################################
-#Inicio Callback que almacena el df y crea los dropdowns
+#Inicio Callback que almacena el df, crea los dropdowns y los botones
 ##########################################################################################################################################################
 def load_data_and_dropdowns(contents, filename):
     colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf', '#999999']
+
     if contents is None:
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
     df = parse_contents(contents, filename)
 
@@ -181,9 +181,10 @@ def load_data_and_dropdowns(contents, filename):
         color_mapping = {category: colors[i % len(colors)] for i, category in enumerate(categories)}
         df['Color'] = df['Clase'].map(color_mapping)
         
-        #retorna e
-
-        return df.to_dict('records'), dp1, dp2, dp3, dp4, dp5, dp6,{'display': 'block','padding-left': 20}
+        #retorna el estilo con que se debe ver el boton kde
+        kde_style = {'display': 'block','padding-left': 20}
+        off_canvas_button = {'display': 'block','padding-bottom': 10, 'padding-top': 5}
+        return df.to_dict('records'), dp1, dp2, dp3, dp4, dp5, dp6,kde_style, off_canvas_button
     else:
         raise dash.exceptions.PreventUpdate
 ##########################################################################################################################################################
@@ -257,6 +258,8 @@ def generate_map(df_dict, current_figure, current_config, kde_output):
 ##########################################################################################################################################################
 #Fin Callback que crea el mapa
 ##########################################################################################################################################################
+
+
 ##########################################################################################################################################################
 #Inicio Callback para modificar el dataframe
 ##########################################################################################################################################################
@@ -268,9 +271,6 @@ def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_
 
     #convierte la entrada df_dict en un df
     df = pd.DataFrame(df_dict)
-
-    print('Dropdown Clase: ',dropdown_value_1)
-    print('Dropdown Hotel: ',dropdown_value_6)
 
     # esta es un verificacion de refuerzo para ver si el csv tien columnas latitud y longitud si no tiene sale del callback
     if 'Latitud' not in df.columns or 'Longitud' not in df.columns:
@@ -330,17 +330,65 @@ def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_
 ##########################################################################################################################################################
 #Fin Callback para modificar el dataframe
 ##########################################################################################################################################################
+
+
+##########################################################################################################################################################
+#Inicio Callback que despliega el off-canvas
+##########################################################################################################################################################
+def show_inputs(n_clicks,*states):
+    print('valor del estado es: ',type(states[0]))
+    if states[-1] is None:
+        raise dash.exceptions.PreventUpdate
+    
+    #convierte la entrada df_dict en un df
+    df = pd.DataFrame(states[-1])
+    print(n_clicks)
+    if n_clicks == 0:  # Si es par, ocultar
+        
+        return False, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+    if n_clicks%2 == 0:  # Si es par, ocultar
+
+        return True, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+    
+    else:  # Si es impar, mostrar y cargar valores originales
+        #df = pd.DataFrame(rows)
+        ########################## BNB
+        p_bnb = df[(df['Clase'] == 'Agencia') & (df['Banco'] == 'Banco Nacional de Bolivia S.A.')]['Peso'].iloc[0]
+        r_bnb = df[(df['Clase'] == 'Agencia') & (df['Banco'] == 'Banco Nacional de Bolivia S.A.')]['Radio'].iloc[0]
+
+        ########################## Otros Bancos
+        p_ob = df[(df['Clase'] == 'Agencia') & (df['Banco'] != 'Banco Nacional de Bolivia S.A.')]['Peso'].iloc[0]
+        r_ob = df[(df['Clase'] == 'Agencia') & (df['Banco'] != 'Banco Nacional de Bolivia S.A.')]['Radio'].iloc[0]
+
+        ########################## Atm
+        p_at = df[df['Clase'] == 'ATM']['Peso'].iloc[0]
+        r_at = df[df['Clase'] == 'ATM']['Radio'].iloc[0]
+
+        ########################## Supermercados
+        p_sm = df[df['Clase'] == 'Supermercado']['Peso'].iloc[0]
+        r_sm = df[df['Clase'] == 'Supermercado']['Radio'].iloc[0]
+
+        ########################## Centros Médicos
+        p_cm = df[df['Clase'] == 'Centro Médico']['Peso'].iloc[0]
+        r_cm = df[df['Clase'] == 'Centro Médico']['Radio'].iloc[0]
+
+        ########################## Hotel
+        p_ht = df[df['Clase'] == 'Hotel']['Peso'].iloc[0]
+        r_ht = df[df['Clase'] == 'Hotel']['Radio'].iloc[0]
+
+        ########################## Otros
+        p_ot = df[df['Clase'].isin(['Centro Comercial', 'Mercado','Restaurante','Universidad'])]['Peso'].iloc[0]
+        r_ot = df[df['Clase'].isin(['Centro Comercial', 'Mercado','Restaurante','Universidad'])]['Radio'].iloc[0]
+
+        return True, p_bnb, r_bnb, p_ob, r_ob, p_at, r_at, p_sm, r_sm, p_cm, r_cm, p_ht, r_ht, p_ot, r_ot
 ##########################################################################################################################################################
 #Inicio Callback que crea el mapa
 ##########################################################################################################################################################
 
-##########################################################################################################################################################
-#Inicio Callback que crea el mapa
-##########################################################################################################################################################
+
 ##########################################################################################################################################################
 #Inicio Callback desarrolla el KDE
 ##########################################################################################################################################################
-
 def generate_gson(n_clicks, df_dict):
 
     if n_clicks is None or df_dict is None:
@@ -359,7 +407,6 @@ def generate_gson(n_clicks, df_dict):
     kde_geojson = kde_gdf.to_json()
     print('Se genero el KDE')
     return kde_geojson
-
 ##########################################################################################################################################################
 #Fin Callback desarrolla el KDE
 ##########################################################################################################################################################
