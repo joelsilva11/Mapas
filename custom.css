@@ -1,0 +1,5 @@
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+    background-color: black;
+    color: white;
+}
