@@ -96,7 +96,7 @@ def create_map_figure(df, polygon_geojson=None):
         margin=dict(l=0, r=0, t=0, b=0),
         mapbox=dict(
             accesstoken = token,
-            style='dark',
+            style='light',
             center={'lat': df.Latitud.mean(), 'lon': df.Longitud.mean()},
             zoom = 12,
             uirevision = 'constant' # agrega esta línea
@@ -152,7 +152,36 @@ def perform_kde(df, contour_levels=12):
     gdf_polygons = gpd.GeoDataFrame(polygons,crs="EPSG:32720")
 
     return gdf_polygons.to_crs(epsg=4326)
+###################################################################### hace obtine los valores peso y radio del df
+def transform_df(df_t):
 
+    df = pd.DataFrame(df_t)
+    classes = ['Agencia', 'ATM', 'Supermercado', 'Centro Médico', 'Hotel']
+    other_classes = ['Centro Comercial', 'Mercado','Restaurante','Universidad']
+    store_data = {}
+    
+    for i, cls in enumerate(classes):
+        if cls == 'Agencia':
+            p = df[(df['Clase'] == cls) & (df['Banco'] == 'Banco Nacional de Bolivia S.A.')]['Peso'].iloc[0]
+            r = df[(df['Clase'] == cls) & (df['Banco'] == 'Banco Nacional de Bolivia S.A.')]['Radio'].iloc[0]
+            store_data[str(2*i)] = p
+            store_data[str(2*i + 1)] = r
+            p = df[(df['Clase'] == cls) & (df['Banco'] != 'Banco Nacional de Bolivia S.A.')]['Peso'].iloc[0]
+            r = df[(df['Clase'] == cls) & (df['Banco'] != 'Banco Nacional de Bolivia S.A.')]['Radio'].iloc[0]
+            store_data[str(2*i + 2)] = p
+            store_data[str(2*i + 3)] = r
+        else:
+            p = df[df['Clase'] == cls]['Peso'].iloc[0]
+            r = df[df['Clase'] == cls]['Radio'].iloc[0]
+            store_data[str(2*i + 2)] = p
+            store_data[str(2*i + 3)] = r
+
+    p = df[df['Clase'].isin(other_classes)]['Peso'].iloc[0]
+    r = df[df['Clase'].isin(other_classes)]['Radio'].iloc[0]
+    store_data[str(2*len(classes) + 2)] = p
+    store_data[str(2*len(classes) + 3)] = r
+    
+    return store_data
 
 
 
@@ -323,6 +352,9 @@ def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_
 
     filtered_df = pd.concat([df_agn,df_atm,df_poi,df_hot,df_cem])
     print(filtered_df.Peso.unique())
+
+    print('El numero de datos es:', len(filtered_df))
+
     if isinstance(filtered_df, pd.DataFrame):
         return filtered_df.to_dict('records')
     else:
@@ -335,55 +367,63 @@ def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_
 ##########################################################################################################################################################
 #Inicio Callback que despliega el off-canvas
 ##########################################################################################################################################################
-def show_inputs(n_clicks,*states):
-    print('valor del estado es: ',type(states[0]))
-    if states[-1] is None:
-        raise dash.exceptions.PreventUpdate
-    
-    #convierte la entrada df_dict en un df
-    df = pd.DataFrame(states[-1])
-    print(n_clicks)
-    if n_clicks == 0:  # Si es par, ocultar
-        
-        return False, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
-    if n_clicks%2 == 0:  # Si es par, ocultar
-
-        return True, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
-    
-    else:  # Si es impar, mostrar y cargar valores originales
-        #df = pd.DataFrame(rows)
-        ########################## BNB
-        p_bnb = df[(df['Clase'] == 'Agencia') & (df['Banco'] == 'Banco Nacional de Bolivia S.A.')]['Peso'].iloc[0]
-        r_bnb = df[(df['Clase'] == 'Agencia') & (df['Banco'] == 'Banco Nacional de Bolivia S.A.')]['Radio'].iloc[0]
-
-        ########################## Otros Bancos
-        p_ob = df[(df['Clase'] == 'Agencia') & (df['Banco'] != 'Banco Nacional de Bolivia S.A.')]['Peso'].iloc[0]
-        r_ob = df[(df['Clase'] == 'Agencia') & (df['Banco'] != 'Banco Nacional de Bolivia S.A.')]['Radio'].iloc[0]
-
-        ########################## Atm
-        p_at = df[df['Clase'] == 'ATM']['Peso'].iloc[0]
-        r_at = df[df['Clase'] == 'ATM']['Radio'].iloc[0]
-
-        ########################## Supermercados
-        p_sm = df[df['Clase'] == 'Supermercado']['Peso'].iloc[0]
-        r_sm = df[df['Clase'] == 'Supermercado']['Radio'].iloc[0]
-
-        ########################## Centros Médicos
-        p_cm = df[df['Clase'] == 'Centro Médico']['Peso'].iloc[0]
-        r_cm = df[df['Clase'] == 'Centro Médico']['Radio'].iloc[0]
-
-        ########################## Hotel
-        p_ht = df[df['Clase'] == 'Hotel']['Peso'].iloc[0]
-        r_ht = df[df['Clase'] == 'Hotel']['Radio'].iloc[0]
-
-        ########################## Otros
-        p_ot = df[df['Clase'].isin(['Centro Comercial', 'Mercado','Restaurante','Universidad'])]['Peso'].iloc[0]
-        r_ot = df[df['Clase'].isin(['Centro Comercial', 'Mercado','Restaurante','Universidad'])]['Radio'].iloc[0]
-
-        return True, p_bnb, r_bnb, p_ob, r_ob, p_at, r_at, p_sm, r_sm, p_cm, r_cm, p_ht, r_ht, p_ot, r_ot
+def toggle_offcanvas(n1, n2,df_dict, is_open, input_values, store_data):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return is_open, input_values, store_data
+    else:
+        prop_id = ctx.triggered[0]['prop_id']
+        if 'open-offcanvas' in prop_id:
+            # Si 'store_data' está vacío, entonces inicializa con 'intermediate-value', 'data'
+            if not store_data:
+                store_data = transform_df(df_dict)  # Aquí debes implementar tu función de transformación
+            return not is_open, [store_data.get(str(i), '') for i in range(14)], store_data
+        elif 'input' in prop_id:
+            index = json.loads(prop_id.split('.')[0])['index']
+            if input_values[index] is None:
+                input_values[index] = store_data.get(str(index), '')
+                return is_open, input_values, store_data
+            else:
+                store_data[str(index)] = input_values[index]
+                return is_open, input_values, store_data
+    return is_open, input_values, store_data
 ##########################################################################################################################################################
-#Inicio Callback que crea el mapa
+#Fin Callback que despliega el off-canvas
 ##########################################################################################################################################################
+
+
+##########################################################################################################################################################
+#Fin Callback que transforma los datos
+##########################################################################################################################################################
+def export_dataframe(n_clicks, store_data, intermediate_data):
+    if n_clicks is None:  # el botón no ha sido presionado
+        return intermediate_data
+    else:
+        df = pd.DataFrame(intermediate_data)
+        # debes reordenar los valores en el store_data para que coincidan con las columnas correspondientes en tu dataframe
+        # por ejemplo:
+        new_weights = [store_data[str(i)] for i in range(0, 14, 2)]
+        new_radii = [store_data[str(i)] for i in range(1, 14, 2)]
+        df.loc[(df['Clase'] == 'Agencia') & (df['Banco'] == 'Banco Nacional de Bolivia S.A.'), 'Peso']= new_weights[0]
+        df.loc[(df['Clase'] == 'Agencia') & (df['Banco'] == 'Banco Nacional de Bolivia S.A.'), 'Radio']= new_radii[0]
+        df.loc[(df['Clase'] == 'Agencia') & (df['Banco'] != 'Banco Nacional de Bolivia S.A.'), 'Peso']= new_weights[1]
+        df.loc[(df['Clase'] == 'Agencia') & (df['Banco'] != 'Banco Nacional de Bolivia S.A.'), 'Radio']= new_radii[1]
+        df.loc[df['Clase'] == 'ATM', 'Peso'] = new_weights[2]
+        df.loc[df['Clase'] == 'ATM', 'Radio'] = new_radii[2]
+        df.loc[df['Clase'] == 'Supermercado', 'Peso'] = new_weights[3]
+        df.loc[df['Clase'] == 'Supermercado', 'Radio'] = new_radii[3]
+        df.loc[df['Clase'] == 'Centro Médico', 'Peso'] = new_weights[4]
+        df.loc[df['Clase'] == 'Centro Médico', 'Radio'] = new_radii[4]
+        df.loc[df['Clase'] == 'Hotel', 'Peso'] = new_weights[5]
+        df.loc[df['Clase'] == 'Hotel', 'Radio'] = new_radii[5]
+        df.loc[df['Clase'].isin(['Centro Comercial', 'Mercado', 'Restaurante', 'Universidad']), 'Peso'] = new_weights[6]
+        df.loc[df['Clase'].isin(['Centro Comercial', 'Mercado', 'Restaurante', 'Universidad']), 'Radio'] = new_radii[6]
+
+        return df.to_dict(orient='records')
+##########################################################################################################################################################
+#Fin Callback que despliega el off-canvas
+##########################################################################################################################################################
+
 
 
 ##########################################################################################################################################################

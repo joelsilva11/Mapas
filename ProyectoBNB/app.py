@@ -1,8 +1,8 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output, State, MATCH, ALL
 from layout.layout import layout
-from callbacks.callbacks import load_data_and_dropdowns, generate_map, generate_gson, filter_df,show_inputs
+from callbacks.callbacks import load_data_and_dropdowns, generate_map, generate_gson, filter_df,toggle_offcanvas,export_dataframe
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
 #suppress_callback_exceptions=True
@@ -56,53 +56,37 @@ app.callback(
         Input('Dropdown_4', 'value'),
         Input('Dropdown_5', 'value'),
         Input('Dropdown_6', 'value'),
-        State('intermediate-value', 'data')
+        Input('store-transformed', 'data')
     ]
 )(filter_df)
-
-inputs = [Input(f"input-{x}-{y}", "value") for x in ['peso', 'radio'] for y in ['bnb', 'ob', 'at', 'sm', 'cm', 'ht', 'ot']]
-states = [State(f"input-{x}-{y}", "value") for x in ['peso', 'radio'] for y in ['bnb', 'ob', 'at', 'sm', 'cm', 'ht', 'ot']]
-inputs.append(Input("open-offcanvas", "n_clicks"))
-states.append(State('intermediate-value', 'data'))
 
 #este callback se ejecuta para desplegar el off-canvas
 app.callback(
     [
         Output("offcanvas", "is_open"),
-        Output('input-peso-bnb', 'value'),
-        Output('input-radio-bnb', 'value'),
-        Output('input-peso-ob', 'value'),
-        Output('input-radio-ob', 'value'),
-        Output('input-peso-at', 'value'),
-        Output('input-radio-at', 'value'),
-        Output('input-peso-sm', 'value'),
-        Output('input-radio-sm', 'value'),
-        Output('input-peso-cm', 'value'),
-        Output('input-radio-cm', 'value'),
-        Output('input-peso-ht', 'value'),
-        Output('input-radio-ht', 'value'),
-        Output('input-peso-ot', 'value'),
-        Output('input-radio-ot', 'value')
+        Output({'type': 'input', 'index': ALL}, 'value'),
+        Output('store-inputs', 'data')
     ],
-    [ 
+    [
         Input("open-offcanvas", "n_clicks"),
-        State('input-peso-bnb', 'value'),
-        State('input-radio-bnb', 'value'),
-        State('input-peso-ob', 'value'),
-        State('input-radio-ob', 'value'),
-        State('input-peso-at', 'value'),
-        State('input-radio-at', 'value'),
-        State('input-peso-sm', 'value'),
-        State('input-radio-sm', 'value'),
-        State('input-peso-cm', 'value'),
-        State('input-radio-cm', 'value'),
-        State('input-peso-ht', 'value'),
-        State('input-radio-ht', 'value'),
-        State('input-peso-ot', 'value'),
-        State('input-radio-ot', 'value'),
-        State('intermediate-value', 'data')
+        Input({'type': 'input', 'index': ALL}, 'n_blur'),
+        Input('intermediate-value', 'data')
+    ],
+    [
+        State("offcanvas", "is_open"),
+        State({'type': 'input', 'index': ALL}, 'value'),
+        State('store-inputs', 'data'),
     ]
-)(show_inputs)
+)(toggle_offcanvas)
+
+#este callback transforma df dataframe original
+app.callback(
+    Output('store-transformed', 'data'),
+    Input('export-button', 'n_clicks'),
+    State('store-inputs', 'data'),
+    Input('intermediate-value', 'data')
+)(export_dataframe)
+
 
 
 if __name__ == '__main__':

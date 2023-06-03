@@ -1,7 +1,9 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
+import pandas as pd
 
 PLOTLY_LOGO = "https://raw.githubusercontent.com/joelsilva11/Mapas/main/logo-blanco.png"
+
 
 ###################################################################crea la barra de titulo
 navbar = dbc.Navbar(
@@ -32,17 +34,60 @@ navbar = dbc.Navbar(
     dark=True,
 )
 ###################################################################funciones para crear los inputs
-def generate_input_p (id_input):
-    return dbc.InputGroup(children=[
-                dbc.InputGroupText("Peso"),
-                dcc.Input(id=id_input, type='number', min=0, max=10,required=True,debounce=True,step=1, value=''),
-            ])
-def generate_input_r (id_input):
-    return dbc.InputGroup(children=[
-                dbc.InputGroupText("Radio"),
-                dcc.Input(id=id_input, type='number', min=0, max=500,required=True,debounce=True,step=1, value=''),
-            ])
-
+def generate_inputs (num_of_inputs):
+    inputs = []
+    texts = [
+        'Banco BNB',
+        'Otros Bancos',
+        'ATMs',
+        'SuperMercados',
+        'Centros Médicos',
+        'Hoteles',
+        'Otros'
+    ]
+    for i in range(num_of_inputs):
+        if i % 2 == 0:
+            text_index = i // 2  # Índice para determinar el texto correspondiente
+            input_item = dbc.Row(
+                [
+                    dbc.Col(html.H5(texts[text_index]), width=12),  # Texto en la parte superior
+                    dbc.Col(
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText("Peso",style={'width': '60px'}),
+                                dcc.Input(
+                                    id={'type': 'input', 'index': i},
+                                    type='number',
+                                    min=0,
+                                    max=10,
+                                    placeholder=f'Enter something here...',
+                                ),
+                            ]
+                        ), width=12
+                    )
+                ]
+            )
+        else:
+            input_item = dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText("Radio",style={'width': '60px'}),
+                                dcc.Input(
+                                    id={'type': 'input', 'index': i},
+                                    type='number',
+                                    min=0,
+                                    max=500,
+                                    placeholder=f'Enter something here...',
+                                ),
+                            ]
+                        ), width=12
+                    )
+                ]
+            )
+        inputs.append(input_item)
+    return inputs
 
 #funcion para crear el dropdown aun no existe solo hasta que el callback recibe el csv
 def create_dropdown(df,selected_column,dropdown_id,titulo='Sin nombre'):
@@ -270,36 +315,31 @@ layout = html.Div([
     ),
     ############################################### Inicio de la ventana desplegable
     dbc.Offcanvas(
-        [
-            html.H6("Banco BNB"),
-            generate_input_p('input-peso-bnb'),
-            generate_input_r('input-radio-bnb'),
-            html.H6("Otros Bancos", style={'padding-top': 10}),
-            generate_input_p('input-peso-ob'),
-            generate_input_r('input-radio-ob'),
-            html.H6("ATMs", style={'padding-top': 10}),
-            generate_input_p('input-peso-at'),
-            generate_input_r('input-radio-at'),
-            html.H6("SuperMercados", style={'padding-top': 10}),
-            generate_input_p('input-peso-sm'),
-            generate_input_r('input-radio-sm'),
-            html.H6("Centros Médicos", style={'padding-top': 10}),
-            generate_input_p('input-peso-cm'),
-            generate_input_r('input-radio-cm'),
-            html.H6("Hoteles", style={'padding-top': 10}),
-            generate_input_p('input-peso-ht'),
-            generate_input_r('input-radio-ht'),
-            html.H6("Otros", style={'padding-top': 10}),
-            generate_input_p('input-peso-ot'),
-            generate_input_r('input-radio-ot'),
-            dbc.Button('Editar', id='edit-button', n_clicks=0),
-        ],
+        dbc.Container([
+            dbc.Row(
+                dbc.Col(
+                    generate_inputs(14),
+                    width=12
+                ),
+                justify="center"
+            ),
+            dbc.Row(  # Agregamos una nueva fila para el botón
+                dbc.Col(
+                    dbc.Button("Cargar Datos", id="export-button", color="success",
+                               style={"marginTop": "50px", "width": "100%"}
+                               ),
+                    width=12,
+                ),
+                justify="center",
+            )
+        ]),
         id="offcanvas",
-        title="Editar Pesos y Radios",
+        title="Editar Peso y Radios",
         is_open=False,
-        placement='end',
+        scrollable=True,
     ),
     ############################################### Fin de la ventana desplegable
+    dcc.Store(id='store-inputs'),
     ################################################### Fin Div pantalla principal
     ################################################### Inicio para almacenar el df para que pueda ser usado en otros callbacks
     dcc.Store(id='intermediate-value'),
@@ -310,6 +350,9 @@ layout = html.Div([
     ################################################### Inicio para almacenar el df que sera filtado por los dropdowns
     dcc.Store(id='filter-value'),
     ################################################### Fin para almacenar el df que sera filtado por los dropdowns
+    ################################################### Inicio para almacenar el df tranformado por los inputs
+    dcc.Store(id='store-transformed')
+    ################################################### Fin para almacenar el df tranformado por los inputs
 ])
 
 #############################################################################################################################################

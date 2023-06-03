@@ -8,6 +8,7 @@ import random
 
 url = 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
 attribution = '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> '
+
 # Generar puntos aleatorios con valores en otra columna
 random_points = []
 for _ in range(100):
