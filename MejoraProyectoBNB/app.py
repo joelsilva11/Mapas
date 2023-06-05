@@ -2,7 +2,7 @@ import dash
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State, MATCH, ALL
 from layout.layout import layout, opciones_clases,opciones_bancos,opciones_agencias,opciones_atm,opciones_ceme,opciones_hoteles
-from callbacks.callbacks import load_data_and_dropdowns, generate_map, generate_gson, filter_df,toggle_offcanvas,export_dataframe
+from callbacks.callbacks import load_data_and_dropdowns, generate_map, generate_gson, filter_df,toggle_offcanvas,export_dataframe,update_options_dp
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
 #suppress_callback_exceptions=True
@@ -75,9 +75,10 @@ app.callback(
     State('filter-value', 'data')
 )(generate_gson)
 
-#este callback se ejecuta para modificar el dataframe
+#este callback se ejecuta para Filtar el dataframe
 app.callback(
         Output('filter-value', 'data'),
+        Output('num_puntos_id', 'children'),
     [
         Input('checklist-1', 'value'),
         Input('checklist-2', 'value'),
@@ -85,9 +86,17 @@ app.callback(
         Input('checklist-4', 'value'),
         Input('checklist-5', 'value'),
         Input('checklist-6', 'value'),
+        Input('switches-input', 'value'),
         Input('store-transformed', 'data')
     ]
 )(filter_df)
+
+#este actualizalos valores dropdowns
+app.callback(
+    Output('checklist-3', 'options'),
+    State('store-transformed', 'data'),
+    Input('checklist-2', 'value')
+)(update_options_dp)
 
 #este callback se ejecuta para desplegar el off-canvas
 app.callback(

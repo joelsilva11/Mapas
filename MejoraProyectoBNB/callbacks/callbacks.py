@@ -283,22 +283,28 @@ def generate_map(df_dict, current_figure, current_config, kde_output):
 ##########################################################################################################################################################
 #Inicio Callback para modificar el dataframe
 ##########################################################################################################################################################
-def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_4,dropdown_value_5,dropdown_value_6,df_dict):
+def filter_df(dropdown_value_1, dropdown_value_2, dropdown_value_3, dropdown_value_4, dropdown_value_5, dropdown_value_6, switch_bnb, df_dict):
     
-    print('valores dp: ',dropdown_value_3),
-    #print('valores check: ',check_1)
     # Si no se creo el df la funcion se sale directamente
     if df_dict is None:
-        return dash.no_update
+        return dash.no_update,dash.no_update
 
     #convierte la entrada df_dict en un df
-    df = pd.DataFrame(df_dict)
+    df_raw = pd.DataFrame(df_dict)
+
+    df_bnb = df_raw[df_raw['Banco'] == 'Banco Nacional de Bolivia S.A.']
+    df = df_raw[df_raw['Banco'] != 'Banco Nacional de Bolivia S.A.']
 
     # esta es un verificacion de refuerzo para ver si el csv tien columnas latitud y longitud si no tiene sale del callback
-    if 'Latitud' not in df.columns or 'Longitud' not in df.columns:
+    if 'Latitud' not in df_raw.columns or 'Longitud' not in df_raw.columns:
         raise dash.exceptions.PreventUpdate
 
-    #si el trigger fue por el dropdown1 entonces el df se filtra y si no el df es el mismo
+    #filtra los BNB
+    if switch_bnb is None or len(switch_bnb) == 0:
+        df_bnb_out = pd.DataFrame()
+    else:
+        df_bnb_out = df_bnb[df_bnb['Clase'].isin(switch_bnb)]
+
 
     #filtra los tipo de puntos
     if dropdown_value_1 is None or len(dropdown_value_1) == 0:
@@ -344,17 +350,46 @@ def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_
         df_hot = _df_hot[_df_hot['TipoHotel'].isin(dropdown_value_6)]
 
 
-    filtered_df = pd.concat([df_agn,df_atm,df_poi,df_hot,df_cem])
+    filtered_df = pd.concat([df_agn,df_atm,df_poi,df_hot,df_cem,df_bnb_out])
     #print(filtered_df.Peso.unique())
 
     #print('El numero de datos es:', len(filtered_df))
 
     if isinstance(filtered_df, pd.DataFrame):
-        return filtered_df.to_dict('records')
+        return filtered_df.to_dict('records'),len(filtered_df)
     else:
         raise dash.exceptions.PreventUpdate
 ##########################################################################################################################################################
 #Fin Callback para modificar el dataframe
+##########################################################################################################################################################
+
+
+##########################################################################################################################################################
+#Inicio Callback para actualizar las opciones de los dropdowns
+##########################################################################################################################################################
+def update_options_dp(df_dict, dropdown_value_2):
+    #print(dropdown_value_2)
+    
+    opt = ['Banco Bisa S.A.', 'Banco de Crédito de Bolivia S.A.',
+       'Banco Económico Bolivia', 'Banco Fie S.A.', 'Banco Ganadero S.A.',
+       'Banco Mercantil Santa Cruz S.A.', 'Banco Unión S.A.']
+    
+    if df_dict is None:
+        return dash.no_update
+    
+    df = pd.DataFrame(df_dict)
+    print(df['Banco'].dropna().unique())
+    if len(dropdown_value_2) == 0:
+        dropdown_value_2 = opt
+        print('valor bancos: ',len(dropdown_value_2))
+
+    data = df[df['Banco'].isin(dropdown_value_2)]['TipoAgencia'].dropna().unique()
+    data = sorted(data, key=str) 
+    options =[{'label': str(i), 'value': str(i)} for i in data]
+    print(len(options))
+    return options
+##########################################################################################################################################################
+#Fin Callback para actualizar las opciones de los dropdowns
 ##########################################################################################################################################################
 
 

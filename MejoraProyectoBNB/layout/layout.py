@@ -309,10 +309,10 @@ radioitems = html.Div(
             ),
         dbc.Checklist(
             options=[
-                {"label": "Agencias", "value": 1},
-                {"label": "ATMs", "value": 2}
+                {"label": "Agencias", "value": 'Agencia'},
+                {"label": "ATMs", "value": 'ATM'}
             ],
-            value=1,
+            value=['Agencia', 'ATM'],# inicia los valores en ON
             id="switches-input",
             switch=True,
         style={
@@ -374,7 +374,7 @@ layout = html.Div([
                 dbc.CardHeader(html.H6("Número de puntos")),
                 dbc.CardBody(
                     [
-                        html.H1("9229", className="card-title text-center", style={'font-size': '110px'}),
+                        html.H1("",id="num_puntos_id", className="card-title text-center", style={'font-size': '110px'}),
                     ]
                 ),
                 #dbc.CardFooter("This is the footer"),
@@ -454,7 +454,7 @@ layout = html.Div([
         ),
         ############################################### Fin Div que contiene upload y mapa a la vez
 
-        ############################################### Inicio Div que contiene los Dropdown
+        ############################################### Inicio Div que contiene los sliders
         html.Div([
             ############################################### Inicio Div que contiene al Boton que oculta el canvas
             html.Div(
@@ -473,7 +473,7 @@ layout = html.Div([
                 'flex': 2
         }
         ),
-        ############################################### Fin Div que contiene los Dropdown
+        ############################################### Fin Div que contiene los sliders
     ], 
     style={
         'display': 'flex', 
