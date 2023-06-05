@@ -47,7 +47,6 @@ def create_dropdown(id_suffix, dp_options,title_dp = 'Title'):
                     id=container_id,
                     style={
                         'display':'none',
-                        #'backgroundColor': 'black',
                         'backgroundColor': 'rgba(0, 0, 0, 0.92)', 
                         'borderRadius': '5px',
                         'overflow': 'auto',
@@ -70,7 +69,6 @@ def create_dropdown(id_suffix, dp_options,title_dp = 'Title'):
             'backgroundColor': '#222',
             'borderRadius': '4px',
             'height': '88px',
-            #'margin-bottom': '7px'
         }
     )
 
