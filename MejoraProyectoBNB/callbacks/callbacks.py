@@ -17,7 +17,6 @@ from layout.layout import create_dropdown
 
 token = 'pk.eyJ1Ijoiam1zczExIiwiYSI6ImNsN3RsbHpldDEwNDIzdm1rMG1qZWx6cmUifQ.svDPURTTxi1aHuHpzPU8sQ'
 
-
 ###################################################################### Funcion para verificar la carga del csv 
 def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
@@ -192,19 +191,11 @@ def load_data_and_dropdowns(contents, filename):
     colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf', '#999999']
 
     if contents is None:
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update
 
     df = parse_contents(contents, filename)
 
     if isinstance(df, pd.DataFrame):
-        # Convierte el DataFrame a un formato que sea serializable
-        dp1 = create_dropdown(df,'Clase','Dropdown_1','Tipo Punto')
-        dp2 = create_dropdown(df,'Banco','Dropdown_2','Bancos')
-        dp3 = create_dropdown(df,'TipoAgencia','Dropdown_3','Tipo Agencia')
-        dp4 = create_dropdown(df,'TipoCentroMedico','Dropdown_4','Tipo Centro Médico')
-        dp5 = create_dropdown(df,'TipoHotel','Dropdown_5','Tipo Hospedaje')
-        dp6 = create_dropdown(df,'DepositoATM','Dropdown_6','ATM con depósito')
-
         # Generar la columna de colores según la categoría
         categories = df['Clase'].unique()
         color_mapping = {category: colors[i % len(colors)] for i, category in enumerate(categories)}
@@ -213,7 +204,7 @@ def load_data_and_dropdowns(contents, filename):
         #retorna el estilo con que se debe ver el boton kde
         kde_style = {'display': 'block','padding-left': '145px'}
         off_canvas_button = {'display': 'block','padding-bottom': 10, 'padding-top': 5}
-        return df.to_dict('records'), dp1, dp2, dp3, dp4, dp5, dp6,kde_style, off_canvas_button
+        return df.to_dict('records'),kde_style, off_canvas_button
     else:
         raise dash.exceptions.PreventUpdate
 ##########################################################################################################################################################
@@ -294,6 +285,8 @@ def generate_map(df_dict, current_figure, current_config, kde_output):
 ##########################################################################################################################################################
 def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_4,dropdown_value_5,dropdown_value_6,df_dict):
     
+    print('valores dp: ',dropdown_value_3),
+    #print('valores check: ',check_1)
     # Si no se creo el df la funcion se sale directamente
     if df_dict is None:
         return dash.no_update
@@ -306,6 +299,7 @@ def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_
         raise dash.exceptions.PreventUpdate
 
     #si el trigger fue por el dropdown1 entonces el df se filtra y si no el df es el mismo
+
     #filtra los tipo de puntos
     if dropdown_value_1 is None or len(dropdown_value_1) == 0:
         df_t = df
@@ -332,28 +326,28 @@ def filter_df(dropdown_value_1,dropdown_value_2,dropdown_value_3,dropdown_value_
         df_agn = _df_agn[_df_agn['TipoAgencia'].isin(dropdown_value_3)]
 
     #filtra los tipo de ATM
-    if dropdown_value_6 is None or len(dropdown_value_6) == 0:
+    if dropdown_value_4 is None or len(dropdown_value_4) == 0:
         df_atm = _df_atm
     else:
-        df_atm = _df_atm[_df_atm['DepositoATM'].isin(dropdown_value_6)]
+        df_atm = _df_atm[_df_atm['DepositoATM'].isin(dropdown_value_4)]
 
     #filtra los tipo de centros medicos
-    if dropdown_value_4 is None or len(dropdown_value_4) == 0:
+    if dropdown_value_5 is None or len(dropdown_value_5) == 0:
         df_cem = _df_cem
     else:
-        df_cem = _df_cem[_df_cem['TipoCentroMedico'].isin(dropdown_value_4)]
+        df_cem = _df_cem[_df_cem['TipoCentroMedico'].isin(dropdown_value_5)]
 
     #filtra los tipo de hotel
-    if dropdown_value_5 is None or len(dropdown_value_5) == 0:
+    if dropdown_value_6 is None or len(dropdown_value_6) == 0:
         df_hot = _df_hot
     else:
-        df_hot = _df_hot[_df_hot['TipoHotel'].isin(dropdown_value_5)]
+        df_hot = _df_hot[_df_hot['TipoHotel'].isin(dropdown_value_6)]
 
 
     filtered_df = pd.concat([df_agn,df_atm,df_poi,df_hot,df_cem])
-    print(filtered_df.Peso.unique())
+    #print(filtered_df.Peso.unique())
 
-    print('El numero de datos es:', len(filtered_df))
+    #print('El numero de datos es:', len(filtered_df))
 
     if isinstance(filtered_df, pd.DataFrame):
         return filtered_df.to_dict('records')

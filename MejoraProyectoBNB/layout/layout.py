@@ -5,7 +5,73 @@ import dash_leaflet as dl
 PLOTLY_LOGO = "https://raw.githubusercontent.com/joelsilva11/Mapas/main/logo-blanco.png"
 
 
-options = [{'label': f'Opción {i+1}', 'value': f'Valor {i+1}'} for i in range(10)]
+################################################################ Creamos las opciones de los filtros para no hacerlos muy complicado
+################################################Opciones clase
+opciones_cl = [
+    "Agencia",
+    "ATM",
+    "Centro Comercial",
+    "Centro Médico",
+    "Hotel",
+    "Mercado",
+    "Restaurante",
+    "Supermercado",
+    "Universidad"
+]
+opciones_clases = [{'label': opcion, 'value': opcion} for opcion in opciones_cl]
+
+################################################Opciones bancos
+opciones_bancos = [
+    {'label':"Banco Bisa",'value':"Banco Bisa S.A."},
+    {'label':"Banco de Crédito de Bolivia",'value':"Banco de Crédito de Bolivia S.A."},
+    {'label':"Banco Económico Bolivia",'value':"Banco Económico Bolivia"},
+    {'label':"Banco Fie",'value':"Banco Fie S.A."},
+    {'label':"Banco Ganadero",'value':"Banco Ganadero S.A."},
+    {'label':"Banco Mercantil Santa Cruz",'value':"Banco Mercantil Santa Cruz S.A."},
+    {'label':"Banco Unión",'value':"Banco Unión S.A."}
+]
+
+################################################Opciones agencias
+opciones_ag = [
+    "Agencia",
+    "Express",
+    "Externa",
+    "Indefinido",
+    "Punto Promocional Fijo",
+    "Sucursal",
+    "Ventanilla"
+]
+opciones_agencias = [{'label': opcion, 'value': opcion} for opcion in opciones_ag]
+
+################################################Opciones atm
+opciones_atm = [
+    {'label': 'Permite depósitos', 'value': 'Si'},
+    {'label': 'No Permite depósitos', 'value': 'No'}, 
+    ]
+
+################################################Opciones centros médicos
+opciones_cm = [
+    "Centro de salud",
+    "Clínica",
+    "Hospital"
+]
+opciones_ceme = [{'label': opcion, 'value': opcion} for opcion in opciones_cm]
+
+################################################Opciones hoteles
+opciones_ht = [
+    "ApartHotel",
+    "Apartment",
+    "Bed and breakfast",
+    "Guest house",
+    "Holiday home",
+    "Homestay",
+    "Hostel",
+    "Hotel",
+    "Inn",
+    "Resort"
+]
+opciones_hoteles = [{'label': opcion, 'value': opcion} for opcion in opciones_ht]
+################################################################ fin de las opciones de los filtros para no hacerlos muy complicado
 
 
 ###################################################################crea la barra de titulo
@@ -84,6 +150,7 @@ def create_dropdown_p(id_suffix, dp_options,title_dp = 'Title'):
     checklist_id = f'checklist-{id_suffix}'
     all_checklist_id = f'all-checklist-{id_suffix}'
     container_id = f'checklist_container-{id_suffix}'
+
 
     # Crea y devuelve el componente
     return html.Div(
@@ -274,22 +341,22 @@ layout = html.Div([
         ############################################### Inicio Div que contiene los dropdowns personalizados
         html.Div([
             ################################################### Dropdown1
-            html.Div(create_dropdown_p('1',options,'Tipos de Puntos'),style={'padding-bottom': 7}),
+            html.Div(create_dropdown_p('1',opciones_clases,'Tipos de Puntos'),style={'padding-bottom': 7}),
 
             ################################################### Dropdown2
-            html.Div(create_dropdown_p('2',options,'Bancos'),style={'padding-bottom': 7}),
+            html.Div(create_dropdown_p('2',opciones_bancos,'Bancos'),style={'padding-bottom': 7}),
 
             ################################################### Dropdown3
-            html.Div(create_dropdown_p('3',options,'Tipos de Agencias'),style={'padding-bottom': 7}),
+            html.Div(create_dropdown_p('3',opciones_agencias,'Tipos de Agencias'),style={'padding-bottom': 7}),
 
             ################################################### Dropdown4
-            html.Div(create_dropdown_p('4',options,'ATM con depósito'),style={'padding-bottom': 7}),
+            html.Div(create_dropdown_p('4',opciones_atm,'ATM con depósito'),style={'padding-bottom': 7}),
 
             ################################################### Dropdown5
-            html.Div(create_dropdown_p('5',options,'Tipos de Centros Médicos'),style={'padding-bottom': 7}),
+            html.Div(create_dropdown_p('5',opciones_ceme,'Tipos de Centros Médicos'),style={'padding-bottom': 7}),
 
             ################################################### Dropdown6
-            html.Div(create_dropdown_p('6',options,'Tipos de Hospedaje'),style={'padding-bottom': 7}),
+            html.Div(create_dropdown_p('6',opciones_hoteles,'Tipos de Hospedaje'),style={'padding-bottom': 7}),
 
             ################################################### Selector Agencias y ATMs BNB
             html.Div(radioitems,
@@ -367,7 +434,7 @@ layout = html.Div([
             html.Div(
                 dcc.Graph(
                     id='map-scatter',
-                    style={'height': '90vh'}
+                    style={'height': '91vh'}
                 ),
                 id='map-container',
                 style={
@@ -396,108 +463,6 @@ layout = html.Div([
                         style={'display': 'none'},
                     ),
             ############################################### Fin Div que contiene al Boton que oculta el canvas
-            ############################################### Inicio Div que contiene al Dropdown1 que filtra Clase
-            html.Div(
-                [
-                dcc.Dropdown(
-                    id='Dropdown_1', #debe existir un dropdown antes de mostrarse para evitar errores
-                    options=[],
-                    value=None,
-                    style={
-                    'display': 'none'
-                    }
-                )],
-                id='Dropdown_container_1', 
-                style={
-                'padding-bottom': 5, 
-                }
-            ),
-            ############################################### Fin Div que contiene al Dropdown1
-            ############################################### Inicio Div que contiene al Dropdown2 que filtra bancos
-            html.Div(
-                [
-                dcc.Dropdown(
-                    id='Dropdown_2', #debe existir un dropdown antes de mostrarse para evitar errores
-                    options=[],
-                    value=None,
-                    style={
-                    'display': 'none'
-                    }
-                )],
-                id='Dropdown_container_2', 
-                style={
-                'padding-bottom': 5, 
-                }
-            ),
-            ############################################### Fin Div que contiene al Dropdown2
-            ############################################### Inicio Div que contiene al Dropdown3 que filtra tipo de agencia
-            html.Div(
-                [
-                dcc.Dropdown(
-                    id='Dropdown_3', #debe existir un dropdown antes de mostrarse para evitar errores
-                    options=[],
-                    value=None,
-                    style={
-                    'display': 'none'
-                    }
-                )],
-                id='Dropdown_container_3', 
-                style={
-                'padding-bottom': 5, 
-                }
-            ),
-            ############################################### Fin Div que contiene al Dropdown3
-            ############################################### Inicio Div que contiene al Dropdown6 que filtra tipo de ATM
-            html.Div(
-                [
-                dcc.Dropdown(
-                    id='Dropdown_6', #debe existir un dropdown antes de mostrarse para evitar errores
-                    options=[],
-                    value=None,
-                    style={
-                    'display': 'none'
-                    }
-                )],
-                id='Dropdown_container_6', 
-                style={
-                'padding-bottom': 5, 
-                }
-            ),
-            ############################################### Fin Div que contiene al Dropdown6
-            ############################################### Inicio Div que contiene al Dropdown4 que filtra tipo Centro médico
-            html.Div(
-                [
-                dcc.Dropdown(
-                    id='Dropdown_4', #debe existir un dropdown antes de mostrarse para evitar errores
-                    options=[],
-                    value=None,
-                    style={
-                    'display': 'none'
-                    }
-                )],
-                id='Dropdown_container_4', 
-                style={
-                'padding-bottom': 5, 
-                }
-            ),
-            ############################################### Fin Div que contiene al Dropdown4
-            ############################################### Inicio Div que contiene al Dropdown5 que filtra tipo hospedaje
-            html.Div(
-                [
-                dcc.Dropdown(
-                    id='Dropdown_5', #debe existir un dropdown antes de mostrarse para evitar errores
-                    options=[],
-                    value=None,
-                    style={
-                    'display': 'none'
-                    }
-                )],
-                id='Dropdown_container_5', 
-                style={
-                'padding-bottom': 5, 
-                }
-            ),
-            ############################################### Fin Div que contiene al Dropdown5
         ],
         style={
                 'flex-direction': 'column',
