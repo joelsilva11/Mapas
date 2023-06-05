@@ -42,10 +42,10 @@ app.layout = html.Div([
                 ),
                 dl.BaseLayer(
                     dl.TileLayer(
-                        url='https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-                        attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
+                        url='http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+                        attribution='&copy; <a>Google Satellite</a>'
                     ),
-                    name='Stadia Maps',
+                    name='GoogleSatellite',
                     
                 )
             ],
@@ -64,7 +64,7 @@ app.layout = html.Div([
                 for _, row in df.iterrows()
             ]
         )
-    ], style={'width': '100%', 'height': '50vh', 'margin': "auto", "display": "block"})
+    ], style={'width': '100%', 'height': '100vh', 'margin': "auto", "display": "block"})
 ])
 
 @app.callback(

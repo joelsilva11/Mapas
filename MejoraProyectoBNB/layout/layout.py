@@ -1,8 +1,11 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
-import pandas as pd
+import dash_leaflet as dl
 
 PLOTLY_LOGO = "https://raw.githubusercontent.com/joelsilva11/Mapas/main/logo-blanco.png"
+
+
+options = [{'label': f'Opción {i+1}', 'value': f'Valor {i+1}'} for i in range(10)]
 
 
 ###################################################################crea la barra de titulo
@@ -10,12 +13,12 @@ navbar = dbc.Navbar(
     [
         dbc.Row(
             [
-                dbc.Col(html.Img(src=PLOTLY_LOGO, height="60px"),width=1),
-                dbc.Col(dbc.NavbarBrand("VISUALIZACIÓN DE MAPAS DE CALOR CON CONTORNOS DE DENSIDAD", className="ms-2",style={'font-size': '36px'}), width=9),
+                dbc.Col(html.Img(src=PLOTLY_LOGO, height="60px"),width=2,style={'padding-left': '75px'}),
+                dbc.Col(dbc.NavbarBrand("VISUALIZACIÓN DE MAPAS DE CALOR CON CONTORNOS DE DENSIDAD",style={'font-size': '36px'}), width=7),
                 ############################################### Inicio Div que contiene al Boton que ejecuta el KDE
                 dbc.Col(
                     html.Div(
-                        dbc.Button('Run KDE Analysis', id='kde-button', n_clicks=0, style={'width': '100%','height': '50px'}, color="success"),
+                        dbc.Button('Run KDE Analisys', id='kde-button', n_clicks=0, style={'width': '100%','height': '50px'}, color="success"),
                         id='kde-button_container', 
                         style={'display': 'none'},
                     )
@@ -27,12 +30,117 @@ navbar = dbc.Navbar(
                 "margin": "0", 
                 "width": "100%"
             },
-        ),
-        
+        ),      
     ],
-    color="dark",
+    color="#333",
     dark=True,
 )
+
+###################################################################crea el estilo del mapa
+mapa_dl = dl.Map([
+    dl.LayersControl([
+        dl.BaseLayer(
+            dl.TileLayer(
+                    url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            ),
+            name='OpenStreetMaps',
+            checked=True
+        ),
+        dl.BaseLayer(
+            dl.TileLayer(
+                url='http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+                attribution='&copy; <a>Google Satellite</a>'
+            ),
+        name='Google Satellite',
+        )
+    ],
+    collapsed=True
+    ),
+    dl.LayerGroup(
+        id='marker-group',
+        children=[
+            dl.Marker(
+                position=(-17.384582716225257, -66.17527469326268)
+            )
+            #for _, row in df.iterrows()
+            ]
+    )
+], 
+style={
+    'width': '100%', 
+    'height': '90vh', 
+    'margin': "auto", 
+    "display": "block"
+    }
+)
+
+
+###################################################################crea los dropdowns personalizados
+def create_dropdown_p(id_suffix, dp_options,title_dp = 'Title'):
+    # Genera los IDs de los componentes con el sufijo proporcionado
+    input_id = f'dp-input-{id_suffix}'
+    button_id = f'dp-button-{id_suffix}'
+    checklist_id = f'checklist-{id_suffix}'
+    all_checklist_id = f'all-checklist-{id_suffix}'
+    container_id = f'checklist_container-{id_suffix}'
+
+    # Crea y devuelve el componente
+    return html.Div(
+        [
+            html.H6(
+                title_dp, 
+                style={
+                    'padding-left': '10px',
+                    'padding-top':'7px',
+                    'margin-bottom': '5px'
+                }
+            ),
+            dbc.InputGroup(
+                [
+                    dbc.Input(id=input_id, value="", readonly=True,),
+                    dbc.Button("▼", id=button_id, color="primary")
+                ],
+                style={
+                    'padding-left': '10px',
+                    'padding-right': '10px'
+                }
+            ),
+            html.Div(
+                [
+                html.Div(
+                    [   
+                        dbc.Checklist(options=["All"], value=[], id=all_checklist_id, style={'padding-left': 8}),
+                        dbc.Checklist(options=dp_options, value=[], id=checklist_id, style={'padding-left': 16}),
+                    ],
+                    id=container_id,
+                    style={
+                        'display':'none',
+                        'backgroundColor': 'rgba(0, 0, 0, 0.92)', 
+                        'borderRadius': '5px',
+                        'overflow': 'auto',
+                        'maxHeight': '180px', 
+                        'position': 'absolute', 
+                        'z-index': '9999',
+                        'width': '100%',
+                    }
+                ),
+                ],
+                style={
+                    'position': 'relative',
+                    'padding-left': '10px',
+                    'margin-right': '20px'
+                }
+            ),
+        ],
+        style={
+            
+            'backgroundColor': '#333',
+            'borderRadius': '5px',
+            'height': '8.5vh',
+        }
+    )
+
 ###################################################################funciones para crear los inputs
 def generate_inputs (num_of_inputs):
     inputs = []
@@ -121,7 +229,32 @@ def create_dropdown(df,selected_column,dropdown_id,titulo='Sin nombre'):
     ############################################## Fin del Div que contiene el Dropdown
     return dropdown
 
-
+#funcion para crear los switches para seleccion del banco bnb
+radioitems = html.Div(
+    [
+        html.H6(
+                'Puntos BNB', 
+                style={
+                    'padding-left': '10px',
+                    'padding-top':'7px',
+                    'margin-bottom': '20px'
+                }
+            ),
+        dbc.Checklist(
+            options=[
+                {"label": "Agencias", "value": 1},
+                {"label": "ATMs", "value": 2}
+            ],
+            value=1,
+            id="switches-input",
+            switch=True,
+        style={
+                'padding-left': '10px',
+                'margin-bottom': '5px'
+        }
+        ),
+    ]
+)
 
 
 
@@ -134,9 +267,71 @@ layout = html.Div([
     ################################################### Inicio Barra de título
     navbar,
     ################################################### Fin Barra de título
-    ################################################### Inicio Div pantalla principal
+
+
+    ################################################################################ Inicio Div pantalla principal
     html.Div([
-        ############################################### Inicio Div que contiene upload y mapa a la vez
+        ############################################### Inicio Div que contiene los dropdowns personalizados
+        html.Div([
+            ################################################### Dropdown1
+            html.Div(create_dropdown_p('1',options,'Tipos de Puntos'),style={'padding-bottom': 7}),
+
+            ################################################### Dropdown2
+            html.Div(create_dropdown_p('2',options,'Bancos'),style={'padding-bottom': 7}),
+
+            ################################################### Dropdown3
+            html.Div(create_dropdown_p('3',options,'Tipos de Agencias'),style={'padding-bottom': 7}),
+
+            ################################################### Dropdown4
+            html.Div(create_dropdown_p('4',options,'ATM con depósito'),style={'padding-bottom': 7}),
+
+            ################################################### Dropdown5
+            html.Div(create_dropdown_p('5',options,'Tipos de Centros Médicos'),style={'padding-bottom': 7}),
+
+            ################################################### Dropdown6
+            html.Div(create_dropdown_p('6',options,'Tipos de Hospedaje'),style={'padding-bottom': 7}),
+
+            ################################################### Selector Agencias y ATMs BNB
+            html.Div(radioitems,
+            style={
+                'margin-bottom': '7px',
+                'backgroundColor': '#333',
+                'borderRadius': '5px',
+                'height': '12vh',
+            }
+            ),
+
+            ################################################### Indicador de numero de puntos
+            html.Div(dbc.Card(
+            [
+                dbc.CardHeader(html.H6("Número de puntos")),
+                dbc.CardBody(
+                    [
+                        html.H1("9229", className="card-title text-center", style={'font-size': '110px'}),
+                    ]
+                ),
+                #dbc.CardFooter("This is the footer"),
+            ],
+            style={"width": "18rem",'backgroundColor': '#333'},
+            ),
+            style={
+                #'margin-bottom': '7px',
+                'backgroundColor': '#333',
+                'borderRadius': '5px',
+                #'height': '22vh',
+            }
+            )
+        ],
+        style={
+            'padding-top': 7, 
+            'flex': 1.5,
+            'height': '91vh',
+            #'backgroundColor': '#335'
+        },
+        ),
+        ############################################### Fin Div que contiene los dropdowns personalizados
+
+        ############################################### Inicio Div que contiene el upload y el mapa a la vez
         html.Div([
             ############################################### Inicio Div que contiene upload
             html.Div([
@@ -148,8 +343,8 @@ layout = html.Div([
                         html.A('Seleccione Archivos')
                     ]),
                     style={
-                        'width': '99%',
-                        'height': '88vh',
+                        'width': '98.6%',
+                        'height': '89vh',
                         'display': 'flex',  # Esto permite utilizar las propiedades flexbox para centrar el contenido
                         'justify-content': 'center',  # Centra el contenido horizontalmente
                         'align-items': 'center',  # Centra el contenido verticalmente
@@ -158,14 +353,16 @@ layout = html.Div([
                         'borderStyle': 'dashed',
                         'borderRadius': '20px',
                         'textAlign': 'center',
-                        'margin': '10px'
+                        'margin': '8px',
                     }
                 ),
                 ############################################### Fin objeto Upload
             ], 
-            id='upload-container' #Id contenedor del Upload
+            id='upload-container', #Id contenedor del Upload
+            style={'height': '100vh'}
             ),
             ############################################### Fin Div que contiene upload
+
             ############################################### Inicio Div que contiene Grafico mapa
             html.Div(
                 dcc.Graph(
@@ -180,11 +377,16 @@ layout = html.Div([
             ############################################### Fin Div que contiene Grafico mapa
         ],
         style={
-            'padding': 5, 
-            'flex': 8.5
+            #'padding': 7, 
+            'flex': 8.5,
+            'margin': 7,
+            'backgroundColor': '#333',
+            'borderRadius': '5px',
+            #'height': '91vh'
         }
         ),
         ############################################### Fin Div que contiene upload y mapa a la vez
+
         ############################################### Inicio Div que contiene los Dropdown
         html.Div([
             ############################################### Inicio Div que contiene al Boton que oculta el canvas
@@ -303,7 +505,7 @@ layout = html.Div([
                 'padding-top': 5,
                 'padding-right': 5,
                 'padding-bottom': 5, 
-                'flex': 1.5
+                'flex': 2
         }
         ),
         ############################################### Fin Div que contiene los Dropdown
@@ -313,7 +515,10 @@ layout = html.Div([
         'flex-direction': 'row'
     }
     ),
-    ############################################### Inicio de la ventana desplegable
+    ################################################################################ Inicio Div pantalla principal
+
+
+    ################################################################################ Inicio de la ventana desplegable
     dbc.Offcanvas(
         dbc.Container([
             dbc.Row(
@@ -338,18 +543,29 @@ layout = html.Div([
         is_open=False,
         scrollable=True,
     ),
-    ############################################### Fin de la ventana desplegable
+    ################################################################################ Fin de la ventana desplegable
+
+
+    ################################################### Inicio Stores inputs
     dcc.Store(id='store-inputs'),
-    ################################################### Fin Div pantalla principal
+    ################################################### Fin Stores inputs
+
+    
     ################################################### Inicio para almacenar el df para que pueda ser usado en otros callbacks
     dcc.Store(id='intermediate-value'),
     ################################################### Fin para almacenar el df para que pueda ser usado en otros callbacks
+
+    
     ################################################### Inicio para almacenar el KDE en un geojson
     dcc.Store(id='kde-output'),
     ################################################### Fin para almacenar el KDE en un geojson
+    
+    
     ################################################### Inicio para almacenar el df que sera filtado por los dropdowns
     dcc.Store(id='filter-value'),
     ################################################### Fin para almacenar el df que sera filtado por los dropdowns
+    
+    
     ################################################### Inicio para almacenar el df tranformado por los inputs
     dcc.Store(id='store-transformed')
     ################################################### Fin para almacenar el df tranformado por los inputs

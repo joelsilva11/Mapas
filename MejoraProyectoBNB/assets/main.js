@@ -1,6 +1,6 @@
 document.addEventListener('click', function(event) {
     // Lista de sufijos de ID para los dropdowns
-    var id_suffixes = ['1', '2','3'];  // Actualiza esta lista con todos los sufijos de ID que estés utilizando
+    var id_suffixes = ['1', '2','3','4','5','6'];  // Actualiza esta lista con todos los sufijos de ID que estés utilizando
 
     for (var i = 0; i < id_suffixes.length; i++) {
         var suffix = id_suffixes[i];

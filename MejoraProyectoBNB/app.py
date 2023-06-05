@@ -4,7 +4,7 @@ from dash.dependencies import Input, Output, State, MATCH, ALL
 from layout.layout import layout
 from callbacks.callbacks import load_data_and_dropdowns, generate_map, generate_gson, filter_df,toggle_offcanvas,export_dataframe
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
 #suppress_callback_exceptions=True
 app.layout = layout
 

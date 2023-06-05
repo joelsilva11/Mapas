@@ -96,7 +96,7 @@ def create_map_figure(df, polygon_geojson=None):
         margin=dict(l=0, r=0, t=0, b=0),
         mapbox=dict(
             accesstoken = token,
-            style='light',
+            style='dark',
             center={'lat': df.Latitud.mean(), 'lon': df.Longitud.mean()},
             zoom = 12,
             uirevision = 'constant' # agrega esta línea
@@ -211,7 +211,7 @@ def load_data_and_dropdowns(contents, filename):
         df['Color'] = df['Clase'].map(color_mapping)
         
         #retorna el estilo con que se debe ver el boton kde
-        kde_style = {'display': 'block','padding-left': 20}
+        kde_style = {'display': 'block','padding-left': '145px'}
         off_canvas_button = {'display': 'block','padding-bottom': 10, 'padding-top': 5}
         return df.to_dict('records'), dp1, dp2, dp3, dp4, dp5, dp6,kde_style, off_canvas_button
     else:
