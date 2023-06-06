@@ -54,3 +54,14 @@ input[type="checkbox"] {
     margin-right: 7px;
 }
 
+.dcc-slider-custom .rc-slider-track {
+    background-color: #2DB89E!important;
+}
+
+.dcc-slider-custom .rc-slider-handle {
+    border: solid 2px #2DB89E !important;
+}
+
+.iBXht {
+    width: 100% !important;
+}

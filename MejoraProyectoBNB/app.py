@@ -47,7 +47,7 @@ def create_callbacks(id_suffix, options):
 app.callback(
     Output('intermediate-value', 'data'),  # Actualiza el Store en lugar del mapa
     Output('kde-button_container', 'style'),
-    Output('offcanvas-button-container', 'style'),
+    Output('sliders_contain', 'style'),
     Input('upload-csv', 'contents'),
     State('upload-csv', 'filename')
 )(load_data_and_dropdowns)

@@ -203,7 +203,14 @@ def load_data_and_dropdowns(contents, filename):
         
         #retorna el estilo con que se debe ver el boton kde
         kde_style = {'display': 'block','padding-left': '145px'}
-        off_canvas_button = {'display': 'block','padding-bottom': 10, 'padding-top': 5}
+        off_canvas_button ={
+                'flex-direction': 'column',
+                'display': 'block',
+                'padding-top': 7,
+                'padding-bottom': 5, 
+                'flex': 2
+        }
+        id='sliders_contain',
         return df.to_dict('records'),kde_style, off_canvas_button
     else:
         raise dash.exceptions.PreventUpdate

@@ -1,6 +1,7 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 import dash_leaflet as dl
+import dash_daq as daq
 
 PLOTLY_LOGO = "https://raw.githubusercontent.com/joelsilva11/Mapas/main/logo-blanco.png"
 
@@ -102,48 +103,115 @@ navbar = dbc.Navbar(
     dark=True,
 )
 
-###################################################################crea el estilo del mapa
-mapa_dl = dl.Map([
-    dl.LayersControl([
-        dl.BaseLayer(
-            dl.TileLayer(
-                    url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            ),
-            name='OpenStreetMaps',
-            checked=True
-        ),
-        dl.BaseLayer(
-            dl.TileLayer(
-                url='http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-                attribution='&copy; <a>Google Satellite</a>'
-            ),
-        name='Google Satellite',
-        )
-    ],
-    collapsed=True
-    ),
-    dl.LayerGroup(
-        id='marker-group',
-        children=[
-            dl.Marker(
-                position=(-17.384582716225257, -66.17527469326268)
+
+###################################################################crea los slicers
+def create_slider(Titulo,id_suffix):
+    id_peso = f'sl-peso-{id_suffix}'
+    id_radio = f'sl-radio-{id_suffix}'
+    return html.Div([
+                    html.Div([
+                        html.H6(Titulo,
+                            style={
+                                'padding-top':'7px',
+                                'flex': '1',
+                                'text-align': 'left'
+                            }
+                        ),
+                        ], style={'display': 'flex'}
+                    ),
+                    
+                    dbc.InputGroup(
+                        [
+                            dbc.Button(
+                                "P", 
+                                color="primary",
+                                style={
+                                    'flex': '0.04'
+                                    }
+                            ),
+                            html.Div([
+                                html.Div(
+                                daq.Slider(
+                                    id=id_peso,
+                                    min=0,
+                                    max=10,
+                                    step=1,
+                                    marks={i: str(i) for i in range(11)},
+                                    value=5,
+                                    color='#2A9FD6',
+                                    className='my-slider' # parametro para personlizar la longitud maxima del slider con css
+                                ),
+                                style={
+                                    'margin-left': 25,
+                                    'margin-right': 25,
+                                    }
+                                )
+                                ],
+                                style={
+                                    'padding-top': '8px',
+                                    'padding-bottom': '25px',
+                                    #'backgroundColor': '#092533',
+                                    'backgroundColor': 'rgba(42, 159, 214, 0.15)',
+                                    'borderRadius': '5px',
+                                    'flex': '1',
+                                },
+                            ),
+                        ],
+                        style={
+                            'display': 'flex',
+                        }
+                    ),
+                    dbc.InputGroup(
+                        [
+                            dbc.Button(
+                                "R", 
+                                #color="#6A72AC",
+                                style={
+                                    'flex': '0.04',
+                                    'backgroundColor':"#2DB89E",
+                                    'borderColor':"#2DB89E"
+                                    }
+                            ),
+                            html.Div([
+                                dcc.Slider(
+                                    id=id_radio,
+                                    min=0,
+                                    max=500,
+                                    step=50,
+                                    value=200, # Valor inicial del slider
+                                    marks=None,
+                                    #marks={i: str(i) for i in range(0, 501, 50)}, # Marca los puntos en el slider en incrementos de 50
+                                    tooltip={"placement": "bottom","always_visible": True},
+                                    className="dcc-slider-custom"
+                                )
+                                ],
+                                style={
+                                    'padding-top': '8px',
+                                    #'backgroundColor': '#273B00',
+                                    'backgroundColor': 'rgba(45, 184, 158, 0.2)',
+                                    'flex': '1',
+                                    'borderRadius': '5px',
+                                },
+                            ),
+                        ],
+                        style={
+                            'display': 'flex',    
+                        }
+                    )
+                ],
+            style={
+                'margin-bottom': 7,
+                'backgroundColor': '#333',
+                'borderRadius': '5px',
+                'padding-bottom': '10px',
+                'padding-left': '10px',
+                'padding-right': '10px',
+            },
             )
-            #for _, row in df.iterrows()
-            ]
-    )
-], 
-style={
-    'width': '100%', 
-    'height': '90vh', 
-    'margin': "auto", 
-    "display": "block"
-    }
-)
 
 
 ###################################################################crea los dropdowns personalizados
-def create_dropdown_p(id_suffix, dp_options,title_dp = 'Title'):
+def create_dropdown_p(id_suffix, dp_options,title_dp = 'Title'): 
     # Genera los IDs de los componentes con el sufijo proporcionado
     input_id = f'dp-input-{id_suffix}'
     button_id = f'dp-button-{id_suffix}'
@@ -445,7 +513,7 @@ layout = html.Div([
         ],
         style={
             #'padding': 7, 
-            'flex': 8.5,
+            'flex': 7,
             'margin': 7,
             'backgroundColor': '#333',
             'borderRadius': '5px',
@@ -456,19 +524,44 @@ layout = html.Div([
 
         ############################################### Inicio Div que contiene los sliders
         html.Div([
+            ############################################### Slider 1
+            create_slider('Banco BNB','1'),
+            ############################################### Slider 2
+            create_slider('Otros Bancos','2'),
+            ############################################### Slider 3
+            create_slider('ATMs','3'),
+            ############################################### Slider 4
+            create_slider('Supermercados','4'),
+            ############################################### Slider 5
+            create_slider('Centros Médicos','5'),
+            ############################################### Slider 6
+            create_slider('Hotels','6'),
+
             ############################################### Inicio Div que contiene al Boton que oculta el canvas
-            html.Div(
-                        dbc.Button('Editar parámetros', id='open-offcanvas', n_clicks=0, style={'width': '100%','height': '50px'}, color='primary'),
-                        id='offcanvas-button-container', 
-                        style={'display': 'none'},
-                    ),
+            html.Div([
+                dbc.Button(
+                    'Editar parámetros', 
+                    id='open-offcanvas', 
+                    n_clicks=0, 
+                    style={
+                        'width': '100%',
+                        #'height': '7vh',
+                    }, 
+                    color='primary'
+                ),
+            ],
+            style={
+                'margin-bottom': 7
+            },
+            ),
             ############################################### Fin Div que contiene al Boton que oculta el canvas
         ],
+        id='sliders_contain',
         style={
                 'flex-direction': 'column',
-                #'padding': 5,
-                'padding-top': 5,
-                'padding-right': 5,
+                'display': 'block',
+                'padding-top': 7,
+                #'padding-right': 5,
                 'padding-bottom': 5, 
                 'flex': 2
         }
