@@ -8,39 +8,36 @@ PLOTLY_LOGO = "https://raw.githubusercontent.com/joelsilva11/Mapas/main/logo-bla
 
 ################################################################ Creamos las opciones de los filtros para no hacerlos muy complicado
 ################################################Opciones clase
-opciones_cl = [
-    "Agencia",
-    "ATM",
-    "Centro Comercial",
-    "Centro Médico",
-    "Hotel",
-    "Mercado",
-    "Restaurante",
-    "Supermercado",
-    "Universidad"
-]
-opciones_clases = [{'label': opcion, 'value': opcion} for opcion in opciones_cl]
+opciones_clases = [
+    {'label': 'Agencia', 'value': 'AGNO'},
+    #{'label': 'Agencia BNB', 'value': 'AGNB'},
+    {'label': 'ATM', 'value': 'ATMO'},
+    #{'label': 'ATM BNB', 'value': 'ATMB'},
+    {'label': 'Centro Comercial', 'value': 'CCOM'},
+    {'label': 'Mercado', 'value': 'MERC'},
+    {'label': 'Supermercado', 'value': 'SUPE'},
+    {'label': 'Restaurante', 'value': 'REST'},
+    {'label': 'Hotel', 'value': 'HOTE'},
+    {'label': 'Centro Médico', 'value': 'CMED'},
+    {'label': 'Universidad', 'value': 'UNIV'}
+    ]
 
 ################################################Opciones bancos
 opciones_bancos = [
-    {'label':"Banco Bisa",'value':"Banco Bisa S.A."},
-    {'label':"Banco de Crédito de Bolivia",'value':"Banco de Crédito de Bolivia S.A."},
-    {'label':"Banco Económico Bolivia",'value':"Banco Económico Bolivia"},
-    {'label':"Banco Fie",'value':"Banco Fie S.A."},
-    {'label':"Banco Ganadero",'value':"Banco Ganadero S.A."},
-    {'label':"Banco Mercantil Santa Cruz",'value':"Banco Mercantil Santa Cruz S.A."},
-    {'label':"Banco Unión",'value':"Banco Unión S.A."}
-]
+    {'label': 'Banco Bisa', 'value': 'BSA'},
+    {'label': 'Banco de Crédito de Bolivia', 'value': 'BCP'},
+    {'label': 'Banco Económico Bolivia', 'value': 'BEC'},
+    {'label': 'Banco Fie', 'value': 'FIE'},
+    {'label': 'Banco Ganadero', 'value': 'BGA'},
+    {'label': 'Banco Mercantil Santa Cruz', 'value': 'MSC'},
+    #{'label': 'Banco Nacional de Bolivia', 'value': 'BNB'},
+    {'label': 'Banco Unión', 'value': 'BUN'}
+    ]
 
 ################################################Opciones agencias
 opciones_ag = [
     "Agencia",
-    "Express",
-    "Externa",
-    "Indefinido",
-    "Punto Promocional Fijo",
-    "Sucursal",
-    "Ventanilla"
+    "Otro"
 ]
 opciones_agencias = [{'label': opcion, 'value': opcion} for opcion in opciones_ag]
 
@@ -74,6 +71,11 @@ opciones_ht = [
 opciones_hoteles = [{'label': opcion, 'value': opcion} for opcion in opciones_ht]
 ################################################################ fin de las opciones de los filtros para no hacerlos muy complicado
 
+################################################Opciones BNB
+options_bnb=[
+            {"label": "Agencias", "value": 'AGNB'},
+            {"label": "ATMs", "value": 'ATMB'}
+        ]
 
 ###################################################################crea la barra de titulo
 navbar = dbc.Navbar(
@@ -97,10 +99,12 @@ navbar = dbc.Navbar(
                 "margin": "0", 
                 "width": "100%"
             },
+            
         ),      
     ],
     color="#333",
     dark=True,
+    style={'height': '8vh'}
 )
 
 
@@ -109,7 +113,7 @@ def create_slider(Titulo,id_suffix):
     id_peso = f'sl-peso-{id_suffix}'
     id_radio = f'sl-radio-{id_suffix}'
     return html.Div([
-                    html.Div([
+                    html.Div([ #titulo
                         html.H6(Titulo,
                             style={
                                 'padding-top':'7px',
@@ -120,27 +124,27 @@ def create_slider(Titulo,id_suffix):
                         ], style={'display': 'flex'}
                     ),
                     
-                    dbc.InputGroup(
+                    dbc.InputGroup( #boton y slider
                         [
-                            dbc.Button(
+                            dbc.Button( #boton
                                 "P", 
                                 color="primary",
-                                style={
-                                    'flex': '0.04'
-                                    }
+                            style={
+                                'flex': '0.04'
+                                }
                             ),
-                            html.Div([
+                            html.Div([ # div que contiene al slider
                                 html.Div(
-                                daq.Slider(
-                                    id=id_peso,
-                                    min=0,
-                                    max=10,
-                                    step=1,
-                                    marks={i: str(i) for i in range(11)},
-                                    value=5,
-                                    color='#2A9FD6',
-                                    className='my-slider' # parametro para personlizar la longitud maxima del slider con css
-                                ),
+                                    daq.Slider( #Slider
+                                        id=id_peso,
+                                        min=0,
+                                        max=10,
+                                        step=1,
+                                        marks={i: str(i) for i in range(11)},
+                                        value=0,
+                                        color='#2A9FD6',
+                                        className='my-slider' # parametro para personlizar la longitud maxima del slider con css
+                                    ),
                                 style={
                                     'margin-left': 25,
                                     'margin-right': 25,
@@ -150,9 +154,12 @@ def create_slider(Titulo,id_suffix):
                                 style={
                                     'padding-top': '8px',
                                     'padding-bottom': '25px',
-                                    #'backgroundColor': '#092533',
+                                    "border": "1px solid rgba(42, 159, 214, 1)",
+                                    #'borderColor': '#092533',
                                     'backgroundColor': 'rgba(42, 159, 214, 0.15)',
-                                    'borderRadius': '5px',
+                                    'border-top-right-radius': '5px',
+                                    'border-bottom-right-radius': '5px',
+                                    #'borderRadius': '5px',
                                     'flex': '1',
                                 },
                             ),
@@ -161,42 +168,45 @@ def create_slider(Titulo,id_suffix):
                             'display': 'flex',
                         }
                     ),
-                    dbc.InputGroup(
-                        [
-                            dbc.Button(
-                                "R", 
-                                #color="#6A72AC",
-                                style={
-                                    'flex': '0.04',
-                                    'backgroundColor':"#2DB89E",
-                                    'borderColor':"#2DB89E"
-                                    }
-                            ),
-                            html.Div([
-                                dcc.Slider(
-                                    id=id_radio,
-                                    min=0,
-                                    max=500,
-                                    step=50,
-                                    value=200, # Valor inicial del slider
-                                    marks=None,
-                                    #marks={i: str(i) for i in range(0, 501, 50)}, # Marca los puntos en el slider en incrementos de 50
-                                    tooltip={"placement": "bottom","always_visible": True},
-                                    className="dcc-slider-custom"
-                                )
-                                ],
-                                style={
-                                    'padding-top': '8px',
-                                    #'backgroundColor': '#273B00',
-                                    'backgroundColor': 'rgba(45, 184, 158, 0.2)',
-                                    'flex': '1',
-                                    'borderRadius': '5px',
-                                },
-                            ),
+                    dbc.InputGroup( #boton y slider
+                    [
+                        dbc.Button( #boton
+                            "R", 
+                            #color="#6A72AC",
+                        style={
+                            'flex': '0.04',
+                            'backgroundColor':"#2DB89E",
+                            'borderColor':"#2DB89E"
+                            }
+                        ),
+                        html.Div([ # Dvi que contien al slider
+                            dcc.Slider( # Slider
+                                id=id_radio,
+                                min=0,
+                                max=500,
+                                step=50,
+                                value=0, # Valor inicial del slider
+                                marks=None,
+                                #marks={i: str(i) for i in range(0, 501, 50)}, # Marca los puntos en el slider en incrementos de 50
+                                tooltip={"placement": "bottom","always_visible": True},
+                                className="dcc-slider-custom"
+                            )
                         ],
                         style={
-                            'display': 'flex',    
-                        }
+                            'padding-top': '8px',
+                            #'backgroundColor': '#273B00',
+                            'backgroundColor': 'rgba(45, 184, 158, 0.2)',
+                            "border": "1px solid rgba(45, 184, 158, 1)",
+                            'border-top-right-radius': '5px',
+                            'border-bottom-right-radius': '5px',
+                            'flex': '1',
+                            #'borderRadius': '5px',
+                        },
+                        ),
+                    ],
+                    style={
+                        'display': 'flex',    
+                    }
                     )
                 ],
             style={
@@ -209,7 +219,6 @@ def create_slider(Titulo,id_suffix):
             },
             )
 
-
 ###################################################################crea los dropdowns personalizados
 def create_dropdown_p(id_suffix, dp_options,title_dp = 'Title'): 
     # Genera los IDs de los componentes con el sufijo proporcionado
@@ -221,59 +230,69 @@ def create_dropdown_p(id_suffix, dp_options,title_dp = 'Title'):
 
 
     # Crea y devuelve el componente
-    return html.Div(
-        [
-            html.H6(
-                title_dp, 
-                style={
-                    'padding-left': '10px',
-                    'padding-top':'7px',
-                    'margin-bottom': '5px'
-                }
-            ),
-            dbc.InputGroup(
+    return html.Div(# Div que contiene todo el dropdrown con el espacio de 7px
+    [
+        html.Div([# Div que contiene todo el dropdrown
+            html.Div(# Div que contine el título, casilla y boton 
+            [
+                html.H6(# Título
+                    title_dp, 
+                    style={
+                        'margin-bottom': '5px'
+                    }
+                ),
+                dbc.InputGroup( #Input y boton
                 [
                     dbc.Input(id=input_id, value="", readonly=True,),
                     dbc.Button("▼", id=button_id, color="primary")
                 ],
-                style={
-                    'padding-left': '10px',
-                    'padding-right': '10px'
-                }
+                ),
+            ],
+            style={
+                'padding-left': '10px',
+                'padding-right': '10px',
+                'padding-top':'7px',
+            },
             ),
-            html.Div(
-                [
-                html.Div(
+        
+            html.Div( # Div que contiene a los checklist y los centra
+            [
+                html.Div(# ventana que contiene a los divs con tamaño fijo y scroll
                     [   
                         dbc.Checklist(options=["All"], value=[], id=all_checklist_id, style={'padding-left': 8}),
                         dbc.Checklist(options=dp_options, value=[], id=checklist_id, style={'padding-left': 16}),
                     ],
-                    id=container_id,
-                    style={
-                        'display':'none',
-                        'backgroundColor': 'rgba(0, 0, 0, 0.92)', 
-                        'borderRadius': '5px',
-                        'overflow': 'auto',
-                        'maxHeight': '180px', 
-                        'position': 'absolute', 
-                        'z-index': '9999',
-                        'width': '100%',
-                    }
-                ),
-                ],
+                id=container_id,
                 style={
-                    'position': 'relative',
-                    'padding-left': '10px',
-                    'margin-right': '20px'
+                    'display':'none',
+                    'backgroundColor': 'rgba(0, 0, 0, 0.92)', 
+                    'borderRadius': '5px',
+                    'overflow': 'auto',# hace que lo elementos no hagan crecen el Div y crea un scroll
+                    'maxHeight': '180px', 
+                    'position': 'absolute', 
+                    'z-index': '9999',
+                    'width': '100%',
                 }
+                ),
+            ],
+            style={
+                'position': 'relative',
+                'padding-left': '10px',
+                'margin-right': '20px'
+            }
             ),
         ],
         style={
-            
             'backgroundColor': '#333',
             'borderRadius': '5px',
-            'height': '8.5vh',
-        }
+            'height': '100%',
+        },
+        ),
+    ],
+    style={
+        'padding-bottom':7,
+        'height': '10vh', # cada elemento ocupa el 10% de la pantalla asi si se expande tambien se expanden los drops
+    },
     )
 
 ###################################################################funciones para crear los inputs
@@ -364,32 +383,28 @@ def create_dropdown(df,selected_column,dropdown_id,titulo='Sin nombre'):
     ############################################## Fin del Div que contiene el Dropdown
     return dropdown
 
-#funcion para crear los switches para seleccion del banco bnb
-radioitems = html.Div(
+#funcion para crear los switches
+def create_switch(id_suffix,Titulo,options_sw):
+    input_id = f'switches-{id_suffix}'
+    return html.Div( # retorna el div que contiene los switches 
     [
-        html.H6(
-                'Puntos BNB', 
-                style={
-                    'padding-left': '10px',
-                    'padding-top':'7px',
-                    'margin-bottom': '20px'
-                }
-            ),
+        html.H6(Titulo, style={'margin-bottom': 10}),
         dbc.Checklist(
-            options=[
-                {"label": "Agencias", "value": 'Agencia'},
-                {"label": "ATMs", "value": 'ATM'}
-            ],
-            value=['Agencia', 'ATM'],# inicia los valores en ON
-            id="switches-input",
+            options = options_sw,
+            value=[i['value'] for i in options_sw],# inicia los valores en ON
+            id = input_id,
             switch=True,
         style={
-                'padding-left': '10px',
-                'margin-bottom': '5px'
-        }
-        ),
-    ]
-)
+            #'padding-left': '10px',
+        },
+        ), 
+    ],
+    style={
+        'padding-top':'7px',
+        'padding-left': '10px',
+        'padding-bottom': 15,
+    },
+    )
 
 
 
@@ -403,69 +418,75 @@ layout = html.Div([
     navbar,
     ################################################### Fin Barra de título
 
-
+    #Main screen
     ################################################################################ Inicio Div pantalla principal
     html.Div([
+        #Dropdowns
         ############################################### Inicio Div que contiene los dropdowns personalizados
         html.Div([
             ################################################### Dropdown1
-            html.Div(create_dropdown_p('1',opciones_clases,'Tipos de Puntos'),style={'padding-bottom': 7}),
+            create_dropdown_p('1',opciones_clases,'Tipos de Puntos'),
 
             ################################################### Dropdown2
-            html.Div(create_dropdown_p('2',opciones_bancos,'Bancos'),style={'padding-bottom': 7}),
+            create_dropdown_p('2',opciones_bancos,'Bancos'),
 
             ################################################### Dropdown3
-            html.Div(create_dropdown_p('3',opciones_agencias,'Tipos de Agencias'),style={'padding-bottom': 7}),
+            create_dropdown_p('3',opciones_agencias,'Tipos de Agencias'),
 
             ################################################### Dropdown4
-            html.Div(create_dropdown_p('4',opciones_atm,'ATM con depósito'),style={'padding-bottom': 7}),
+            create_dropdown_p('4',opciones_atm,'ATM con depósito'),
 
             ################################################### Dropdown5
-            html.Div(create_dropdown_p('5',opciones_ceme,'Tipos de Centros Médicos'),style={'padding-bottom': 7}),
+            create_dropdown_p('5',opciones_ceme,'Tipos de Centros Médicos'),
 
             ################################################### Dropdown6
-            html.Div(create_dropdown_p('6',opciones_hoteles,'Tipos de Hospedaje'),style={'padding-bottom': 7}),
+            create_dropdown_p('6',opciones_hoteles,'Tipos de Hospedaje'),
 
             ################################################### Selector Agencias y ATMs BNB
-            html.Div(radioitems,
+            html.Div(create_switch('bnb','Puntos BNB',options_bnb),
             style={
                 'margin-bottom': '7px',
                 'backgroundColor': '#333',
                 'borderRadius': '5px',
-                'height': '12vh',
+                'height': '11%'
             }
             ),
 
             ################################################### Indicador de numero de puntos
-            html.Div(dbc.Card(
-            [
-                dbc.CardHeader(html.H6("Número de puntos")),
-                dbc.CardBody(
-                    [
-                        html.H1("",id="num_puntos_id", className="card-title text-center", style={'font-size': '110px'}),
-                    ]
+            html.Div([# Div Card
+                html.Div([
+                    html.H6("Número de puntos")
+                ],
+                style={'padding-left':7,
+                       'padding-top':7,
+                       'border-bottom': '1px solid #222'
+                },
                 ),
-                #dbc.CardFooter("This is the footer"),
+                html.Div([
+                    html.H1("9999",id="num_puntos_id", style={'font-size': '110px'})
+                ],
+                style={
+                    'display': 'flex',
+                    'justify-content': 'center',
+                    'align-items': 'center',
+                },
+                ),
             ],
-            style={"width": "18rem",'backgroundColor': '#333'},
-            ),
             style={
-                #'margin-bottom': '7px',
                 'backgroundColor': '#333',
                 'borderRadius': '5px',
-                #'height': '22vh',
-            }
-            )
+                'height': '22%',
+            },
+            
+            ),
         ],
         style={
-            'padding-top': 7, 
-            'flex': 1.5,
-            'height': '91vh',
-            #'backgroundColor': '#335'
+            'flex': 1, #ocupa un sexto de la pantalla horizontalmente
         },
         ),
         ############################################### Fin Div que contiene los dropdowns personalizados
 
+        #map and upload
         ############################################### Inicio Div que contiene el upload y el mapa a la vez
         html.Div([
             ############################################### Inicio Div que contiene upload
@@ -473,55 +494,57 @@ layout = html.Div([
                 ############################################### Inicio objeto Upload
                 dcc.Upload(
                     id='upload-csv', #Id Upload
-                    children=html.Div([
-                        'Arrastre y suelte o ',
-                        html.A('Seleccione Archivos')
-                    ]),
+                    children=html.Div(['Arrastre y suelte o ',html.A('Seleccione Archivos')]),
                     style={
-                        'width': '98.6%',
-                        'height': '89vh',
+                        'width': '100%',
+                        'height': '90.7vh',
                         'display': 'flex',  # Esto permite utilizar las propiedades flexbox para centrar el contenido
                         'justify-content': 'center',  # Centra el contenido horizontalmente
                         'align-items': 'center',  # Centra el contenido verticalmente
-                        'lineHeight': '60px',
-                        'borderWidth': '2px',
+                        'borderWidth': '3px',
                         'borderStyle': 'dashed',
                         'borderRadius': '20px',
                         'textAlign': 'center',
-                        'margin': '8px',
+                        'backgroundColor':'#333',
                     }
                 ),
                 ############################################### Fin objeto Upload
             ], 
             id='upload-container', #Id contenedor del Upload
-            style={'height': '100vh'}
+            style={
+                'display':'block'
+            }
             ),
             ############################################### Fin Div que contiene upload
 
             ############################################### Inicio Div que contiene Grafico mapa
-            html.Div(
+            html.Div([
                 dcc.Graph(
                     id='map-scatter',
-                    style={'height': '91vh'}
+                    style={'height': '100%'}
                 ),
-                id='map-container',
-                style={
-                    'display': 'none'
-                }
+            ],
+            id='map-container',
+            style={
+                'display': 'none',
+                'height': '100%',
+                'width': '100%',
+            }
             ),
             ############################################### Fin Div que contiene Grafico mapa
         ],
         style={
-            #'padding': 7, 
-            'flex': 7,
-            'margin': 7,
-            'backgroundColor': '#333',
+            'flex': 4,
+            'width': '100%',
+            'margin-left': 7,
+            'margin-right': 7,
             'borderRadius': '5px',
-            #'height': '91vh'
+            'height': '100%',   
         }
         ),
         ############################################### Fin Div que contiene upload y mapa a la vez
 
+        #slider
         ############################################### Inicio Div que contiene los sliders
         html.Div([
             ############################################### Slider 1
@@ -536,6 +559,8 @@ layout = html.Div([
             create_slider('Centros Médicos','5'),
             ############################################### Slider 6
             create_slider('Hotels','6'),
+            ############################################### Slider 7
+            create_slider('Otros','7'),
 
             ############################################### Inicio Div que contiene al Boton que oculta el canvas
             html.Div([
@@ -551,31 +576,36 @@ layout = html.Div([
                 ),
             ],
             style={
-                'margin-bottom': 7
+                'margin-bottom': 7,
+                'display': 'block',
             },
             ),
             ############################################### Fin Div que contiene al Boton que oculta el canvas
         ],
         id='sliders_contain',
         style={
-                'flex-direction': 'column',
+                #'flex-direction': 'column',
+                'flex': 1,
                 'display': 'block',
-                'padding-top': 7,
-                #'padding-right': 5,
-                'padding-bottom': 5, 
-                'flex': 2
+                #'padding-top': 7,
+                'padding-bottom': 5,
+                'height': '100%',
+                'overflow': 'auto', 
         }
         ),
         ############################################### Fin Div que contiene los sliders
     ], 
     style={
-        'display': 'flex', 
-        'flex-direction': 'row'
+        'display': 'flex', #hace que la pantalla se pueda dividir en porcentajes
+        'flex-direction': 'row', #hace que la direccion de division sea horizontal
+        'height': '92vh',# ocupa el 92% de la pantalla horizontalmente
+        'padding-top':7,
+        'padding-bottom':7,
     }
     ),
     ################################################################################ Inicio Div pantalla principal
 
-
+    #Slice screen
     ################################################################################ Inicio de la ventana desplegable
     dbc.Offcanvas(
         dbc.Container([

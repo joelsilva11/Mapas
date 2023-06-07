@@ -178,7 +178,7 @@ def transform_df(df_t):
             store_data[str(2*i + 2)] = p
             store_data[str(2*i + 3)] = r
         else:
-            
+
             p = df[df['Clase'] == cls]['Peso'].iloc[0]
             r = df[df['Clase'] == cls]['Radio'].iloc[0]
             store_data[str(2*i + 2)] = p
@@ -197,7 +197,20 @@ def transform_df(df_t):
 #Inicio Callback que almacena el df, crea los dropdowns y los botones
 ##########################################################################################################################################################
 def load_data_and_dropdowns(contents, filename):
-    colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf', '#999999']
+    # colores para los puntos
+    colors = [
+        '#26B460', #Agencias BNB
+        '#66FF66', #Agencias Otro
+        '#68478D', #Atm BNB
+        '#ED5151', # atm otro
+        '#F959A1', #centro comercial
+        '#FC921F', #centro medico
+        '#A7C636', #hotel
+        '#FFDE3E', #mercado
+        '#149ECE', #restaurante
+        '#B7814A', #Supermercado
+        '#406FC4'  #Universidad
+        ]
 
     if contents is None:
         return dash.no_update, dash.no_update, dash.no_update
@@ -206,12 +219,13 @@ def load_data_and_dropdowns(contents, filename):
 
     if isinstance(df, pd.DataFrame):
         # Generar la columna de colores según la categoría
-        categories = df['Clase'].unique()
+        categories = np.sort(df['value_c'].unique())
         color_mapping = {category: colors[i % len(colors)] for i, category in enumerate(categories)}
-        df['Color'] = df['Clase'].map(color_mapping)
+        df['Color'] = df['value_c'].map(color_mapping)
         
         #retorna el estilo con que se debe ver el boton kde
         kde_style = {'display': 'block','padding-left': '145px'}
+
         slider_container_style ={
                 'flex-direction': 'column',
                 'display': 'block',
@@ -219,7 +233,7 @@ def load_data_and_dropdowns(contents, filename):
                 'flex': 1,
                 'overflow': 'auto', 
         }
-        id='sliders_contain',
+        #id='sliders_contain',
         return df.to_dict('records'),kde_style, slider_container_style
     else:
         raise dash.exceptions.PreventUpdate
@@ -311,40 +325,43 @@ def filter_df(dropdown_value_1, dropdown_value_2, dropdown_value_3, dropdown_val
         return dash.no_update,dash.no_update
 
     #convierte la entrada df_dict en un df
-    df_raw = pd.DataFrame(df_dict)
-
-    df_bnb = df_raw[df_raw['Banco'] == 'Banco Nacional de Bolivia S.A.']
-    df = df_raw[df_raw['Banco'] != 'Banco Nacional de Bolivia S.A.']
+    df = pd.DataFrame(df_dict)
 
     # esta es un verificacion de refuerzo para ver si el csv tien columnas latitud y longitud si no tiene sale del callback
-    if 'Latitud' not in df_raw.columns or 'Longitud' not in df_raw.columns:
+    if 'Latitud' not in df.columns or 'Longitud' not in df.columns:
         raise dash.exceptions.PreventUpdate
 
-    #filtra los BNB
-    if switch_bnb is None or len(switch_bnb) == 0:
-        df_bnb_out = pd.DataFrame()
-    else:
-        df_bnb_out = df_bnb[df_bnb['Clase'].isin(switch_bnb)]
 
-
-    #filtra los tipo de puntos
+    #filtra los tipos de puntos
     if dropdown_value_1 is None or len(dropdown_value_1) == 0:
         df_t = df
     else:
-        df_t = df[df['Clase'].isin(dropdown_value_1)]
+        df_t = df[df['value_c'].isin(dropdown_value_1)]
 
     #filtra los Bancos
     if dropdown_value_2 is None or len(dropdown_value_2) == 0:
         df_banco = df_t
     else:
-        df_banco = df_t[df_t['Banco'].isin(dropdown_value_2)]
+        df_banco = df_t[df_t['IDBN'].isin(dropdown_value_2)]
 
-
+    #Separa solo Tipo agencias
     _df_agn = df_banco[df_banco['Clase'] == 'Agencia']
+    
     _df_atm = df_banco[df_banco['Clase']== 'ATM']
+
     df_poi = df_t[df_t['Clase'].isin(['Centro Comercial','Mercado','Supermercado','Restaurante','Universidad'])]
+
     _df_hot = df_t[df_t['Clase']== 'Hotel']
+
     _df_cem = df_t[df_t['Clase']== 'Centro Médico']
+
+
+    #filtra los BNB
+    if switch_bnb is None or len(switch_bnb) == 0:
+        df_bnb = pd.DataFrame()
+    else:
+        df_bnb = df[df['value_c'].isin(switch_bnb)]
+
 
     #filtra los tipo de agencias
     if dropdown_value_3 is None or len(dropdown_value_3) == 0:
@@ -371,7 +388,7 @@ def filter_df(dropdown_value_1, dropdown_value_2, dropdown_value_3, dropdown_val
         df_hot = _df_hot[_df_hot['TipoHotel'].isin(dropdown_value_6)]
 
 
-    filtered_df = pd.concat([df_agn,df_atm,df_poi,df_hot,df_cem,df_bnb_out])
+    filtered_df = pd.concat([df_agn,df_atm,df_poi,df_hot,df_cem,df_bnb])
     #print(filtered_df.Peso.unique())
 
     #print('El numero de datos es:', len(filtered_df))
@@ -451,12 +468,31 @@ def update_slider(df_dict):
 
     if df_dict is None:
         raise dash.exceptions.PreventUpdate
+    df = pd.DataFrame(df_dict)
+    valores = df.groupby(by='value_c')[['Peso','Radio']].max().to_dict()
     
-    
-    tf = transform_df(df_dict)
-    peso = tf['0']
-    radio = tf['1']
-    return peso, radio
+    peso = [
+        valores['Peso']['AGNB'],
+        valores['Peso']['AGNO'],
+        valores['Peso']['ATMO'],
+        valores['Peso']['SUPE'],
+        valores['Peso']['CMED'],
+        valores['Peso']['HOTE'],
+        valores['Peso']['CCOM']
+    ]
+    radio = [
+        valores['Radio']['AGNB'],
+        valores['Radio']['AGNO'],
+        valores['Radio']['ATMO'],
+        valores['Radio']['SUPE'],
+        valores['Radio']['CMED'],
+        valores['Radio']['HOTE'],
+        valores['Radio']['CCOM']
+    ]
+
+
+
+    return peso + radio
 ##########################################################################################################################################################
 #Inicio Callback que transforma los datos
 ##########################################################################################################################################################

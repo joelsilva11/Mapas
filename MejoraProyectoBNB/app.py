@@ -2,7 +2,7 @@ import dash
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State, MATCH, ALL
 from layout.layout import layout, opciones_clases,opciones_bancos,opciones_agencias,opciones_atm,opciones_ceme,opciones_hoteles
-from callbacks.callbacks import load_data_and_dropdowns, generate_map, generate_gson, filter_df,toggle_offcanvas,export_dataframe,update_options_dp
+from callbacks.callbacks import load_data_and_dropdowns, generate_map, generate_gson, filter_df,toggle_offcanvas,export_dataframe,update_options_dp,update_slider
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
 #suppress_callback_exceptions=True
@@ -38,13 +38,13 @@ def create_callbacks(id_suffix, options):
         [Input(checklist_id, "value")],
     )
     def update_input(values):
-        labels = [option["value"] for option in options if option["value"] in values]
+        labels = [option["label"] for option in options if option["value"] in values]
         return ", ".join(labels)
 ######################################################################Caso especial para los dropdowns personalizados
 
 
 #este callback se ejecuta las veces que sea necesario hasta que se cargue correctamente el csv
-app.callback(
+app.callback( #load_data_and_dropdowns
     Output('intermediate-value', 'data'),  # Actualiza el Store en lugar del mapa
     Output('kde-button_container', 'style'),
     Output('sliders_contain', 'style'),
@@ -53,7 +53,7 @@ app.callback(
 )(load_data_and_dropdowns)
 
 #este callback se ejecuta una sola vez para crear el mapa
-app.callback(
+app.callback( #generate_map
     [
         Output('map-container', 'style'),
         Output('upload-container', 'style'),
@@ -69,14 +69,14 @@ app.callback(
 )(generate_map)
 
 #este callback se ejecuta cuando se el usuario quiere generar un KDE
-app.callback(
+app.callback( #generate_gson
     Output('kde-output', 'data'),
     [Input('kde-button', 'n_clicks')],
     State('filter-value', 'data')
 )(generate_gson)
 
 #este callback se ejecuta para Filtar el dataframe
-app.callback(
+app.callback( #filter_df
         Output('filter-value', 'data'),
         Output('num_puntos_id', 'children'),
     [
@@ -86,20 +86,22 @@ app.callback(
         Input('checklist-4', 'value'),
         Input('checklist-5', 'value'),
         Input('checklist-6', 'value'),
-        Input('switches-input', 'value'),
+        Input('switches-bnb', 'value'),
         Input('store-transformed', 'data')
     ]
 )(filter_df)
 
 #este actualizalos valores dropdowns
-app.callback(
+
+"""app.callback( #update_options_dropdown
     Output('checklist-3', 'options'),
     State('store-transformed', 'data'),
     Input('checklist-2', 'value')
 )(update_options_dp)
-
+"""
 #este callback se ejecuta para desplegar el off-canvas
-app.callback(
+
+"""app.callback( #toggle_offcanvas
     [
         Output("offcanvas", "is_open"),
         Output({'type': 'input', 'index': ALL}, 'value'),
@@ -108,22 +110,41 @@ app.callback(
     [
         Input("open-offcanvas", "n_clicks"),
         Input({'type': 'input', 'index': ALL}, 'n_blur'),
-        Input('intermediate-value', 'data')
+        
     ],
     [
+        State('intermediate-value', 'data'),
         State("offcanvas", "is_open"),
         State({'type': 'input', 'index': ALL}, 'value'),
         State('store-inputs', 'data'),
     ]
-)(toggle_offcanvas)
+)(toggle_offcanvas)"""
 
 #este callback transforma df dataframe original
-app.callback(
+app.callback( #modify dataframe
     Output('store-transformed', 'data'),
     Input('export-button', 'n_clicks'),
     State('store-inputs', 'data'),
     Input('intermediate-value', 'data')
 )(export_dataframe)
+
+#este callback actualiza los sliders
+outputs = []
+for i in range(1, 3):
+    outputs.append(Output(f'sl-peso-{i}', 'value'))
+    outputs.append(Output(f'sl-radio-{i}', 'value'))
+
+app.callback(
+    [Output(f'sl-peso-{i}', 'value')for i in range(1,8)],
+    [Output(f'sl-radio-{i}', 'value')for i in range(1,8)],
+    Input('intermediate-value', 'data'),
+)(update_slider)
+
+
+
+
+
+
 
 # Estos callbacks son para los dropdowns personalizados
 create_callbacks('1',opciones_clases)
