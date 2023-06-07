@@ -577,7 +577,7 @@ layout = html.Div([
             ],
             style={
                 'margin-bottom': 7,
-                'display': 'block',
+                'display': 'none',
             },
             ),
             ############################################### Fin Div que contiene al Boton que oculta el canvas
