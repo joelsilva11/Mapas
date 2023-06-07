@@ -52,8 +52,8 @@ def create_map_figure(df, polygon_geojson=None):
     
     if polygon_geojson is not None:
         gdf = gpd.GeoDataFrame.from_features(polygon_geojson['features'])# crea un gejson a partir del dicionario features
-        print(len(polygon_geojson['features']))
-        print(gdf.index.astype(str))
+        #print(len(polygon_geojson['features']))
+        #print(gdf.index.astype(str))
         choropleth_layer = go.Choroplethmapbox(
             #pasa los valores a la variables geojson
             geojson=polygon_geojson,
@@ -234,7 +234,7 @@ def load_data_and_dropdowns(contents, filename):
                 'overflow': 'auto', 
         }
         #id='sliders_contain',
-        return df.to_dict('records'),kde_style, slider_container_style
+        return df.to_dict(),kde_style, slider_container_style
     else:
         raise dash.exceptions.PreventUpdate
 ##########################################################################################################################################################
@@ -462,7 +462,7 @@ def toggle_offcanvas(n1,n2,df_dict, is_open, input_values, store_data):
 
 
 ##########################################################################################################################################################
-#Inicio Callback que transforma los datos
+#Inicio Callback que muestra los valores inicales de pesos y radios
 ##########################################################################################################################################################
 def update_slider(df_dict):
 
@@ -490,9 +490,40 @@ def update_slider(df_dict):
         valores['Radio']['CCOM']
     ]
 
-
-
     return peso + radio
+##########################################################################################################################################################
+#Fin Callback que muestra los valores inicales de pesos y radios
+##########################################################################################################################################################
+
+
+##########################################################################################################################################################
+#Inicio Callback que actualiza el datraframe
+##########################################################################################################################################################
+def update_dataframe(*args):
+
+    n_clicks = args[-2]
+    data = args[-1]
+    if data is None:
+        raise dash.exceptions.PreventUpdate
+    print('Se generó un cambio')
+    #print('valor del in: ', args[-2])
+    data = args[-1]
+    pesos = args[:7]
+    radios = args[7:14]
+
+    valores = sorted(set(data['value_c'].values()))
+
+    df = pd.DataFrame(data)
+    df.loc[df.value_c == 'AGNB',['Peso', 'Radio'] ]=pesos[0],radios[0]
+    df.loc[df.value_c == 'AGNO',['Peso', 'Radio'] ]=pesos[1],radios[1]
+    df.loc[df.value_c == 'ATMO',['Peso', 'Radio'] ]=pesos[2],radios[2]
+    df.loc[df.value_c == 'SUPE',['Peso', 'Radio'] ]=pesos[3],radios[3]
+    df.loc[df.value_c == 'CMED',['Peso', 'Radio'] ]=pesos[4],radios[4]
+    df.loc[df.value_c == 'HOTE',['Peso', 'Radio'] ]=pesos[5],radios[5]
+    df.loc[df.value_c.isin(['CCOM', 'MERC', 'REST', 'UNIV']),['Peso', 'Radio'] ]=pesos[6],radios[6]
+
+    
+    return df.to_dict()
 ##########################################################################################################################################################
 #Inicio Callback que transforma los datos
 ##########################################################################################################################################################

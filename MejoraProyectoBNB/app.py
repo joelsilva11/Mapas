@@ -2,7 +2,7 @@ import dash
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State, MATCH, ALL
 from layout.layout import layout, opciones_clases,opciones_bancos,opciones_agencias,opciones_atm,opciones_ceme,opciones_hoteles
-from callbacks.callbacks import load_data_and_dropdowns, generate_map, generate_gson, filter_df,toggle_offcanvas,export_dataframe,update_options_dp,update_slider
+from callbacks.callbacks import load_data_and_dropdowns, generate_map, generate_gson, filter_df,toggle_offcanvas,export_dataframe,update_options_dp,update_slider,update_dataframe
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
 #suppress_callback_exceptions=True
@@ -121,19 +121,14 @@ app.callback( #filter_df
 )(toggle_offcanvas)"""
 
 #este callback transforma df dataframe original
-app.callback( #modify dataframe
+"""app.callback( #modify dataframe
     Output('store-transformed', 'data'),
     Input('export-button', 'n_clicks'),
     State('store-inputs', 'data'),
     Input('intermediate-value', 'data')
-)(export_dataframe)
+)(export_dataframe)"""
 
 #este callback actualiza los sliders
-outputs = []
-for i in range(1, 3):
-    outputs.append(Output(f'sl-peso-{i}', 'value'))
-    outputs.append(Output(f'sl-radio-{i}', 'value'))
-
 app.callback(
     [Output(f'sl-peso-{i}', 'value')for i in range(1,8)],
     [Output(f'sl-radio-{i}', 'value')for i in range(1,8)],
@@ -141,9 +136,14 @@ app.callback(
 )(update_slider)
 
 
-
-
-
+#este callback actualiza el dataframe
+app.callback(
+    Output('store-transformed', 'data'),
+    [Input(f'sl-peso-{i}', 'value')for i in range(1,8)]+
+    [Input(f'sl-radio-{i}', 'value')for i in range(1,8)],
+    #[Input("open-offcanvas", "n_clicks"),
+    Input('intermediate-value', 'data')
+)(update_dataframe)
 
 
 # Estos callbacks son para los dropdowns personalizados
