@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 import dash_leaflet as dl
 import dash_daq as daq
 
-PLOTLY_LOGO = "https://raw.githubusercontent.com/joelsilva11/Mapas/main/logo-blanco.png"
+PLOTLY_LOGO = "https://github.com/joelsilva11/Altitude/blob/main/logo-blanco.png"
 
 
 ################################################################ Creamos las opciones de los filtros para no hacerlos muy complicado
