@@ -49,18 +49,21 @@ def create_map_figure(df, polygon_geojson=None):
 
  
     fig = go.Figure()
-
+    
     if polygon_geojson is not None:
-        gdf = gpd.GeoDataFrame.from_features(polygon_geojson['features'])
+        gdf = gpd.GeoDataFrame.from_features(polygon_geojson['features'])# crea un gejson a partir del dicionario features
+        print(len(polygon_geojson['features']))
+        print(gdf.index.astype(str))
         choropleth_layer = go.Choroplethmapbox(
+            #pasa los valores a la variables geojson
             geojson=polygon_geojson,
-            locations=gdf.index.astype(str),
+            locations=gdf.index.astype(str), #enumera todos los poligonos y is indices los vuelve texto
             z=gdf['Nivel'], # Usar la columna '0' como valores de color 
             colorscale='Turbo',
             hoverinfo='all', # Muestra toda la información en el hover
             hovertemplate='Nivel: %{z}<extra></extra>', # Personaliza el hover para mostrar solo la información que deseas
             #marker_opacity=0.2,
-            showscale=False,
+            showscale=False,# oculta la barra fea
             #marker_line_width=10
             marker=go.choroplethmapbox.Marker(
                 opacity=0.2,
@@ -97,7 +100,7 @@ def create_map_figure(df, polygon_geojson=None):
             accesstoken = token,
             style='dark',
             center={'lat': df.Latitud.mean(), 'lon': df.Longitud.mean()},
-            zoom = 12,
+            zoom = 11,
             uirevision = 'constant' # agrega esta línea
         ),
         
@@ -161,15 +164,21 @@ def transform_df(df_t):
     
     for i, cls in enumerate(classes):
         if cls == 'Agencia':
+            #saca el peso y radio de agencias BNB
             p = df[(df['Clase'] == cls) & (df['Banco'] == 'Banco Nacional de Bolivia S.A.')]['Peso'].iloc[0]
             r = df[(df['Clase'] == cls) & (df['Banco'] == 'Banco Nacional de Bolivia S.A.')]['Radio'].iloc[0]
+
             store_data[str(2*i)] = p
             store_data[str(2*i + 1)] = r
+
+            #saca el peso y radio de agencias que no son BNB
             p = df[(df['Clase'] == cls) & (df['Banco'] != 'Banco Nacional de Bolivia S.A.')]['Peso'].iloc[0]
             r = df[(df['Clase'] == cls) & (df['Banco'] != 'Banco Nacional de Bolivia S.A.')]['Radio'].iloc[0]
+
             store_data[str(2*i + 2)] = p
             store_data[str(2*i + 3)] = r
         else:
+            
             p = df[df['Clase'] == cls]['Peso'].iloc[0]
             r = df[df['Clase'] == cls]['Radio'].iloc[0]
             store_data[str(2*i + 2)] = p
@@ -203,15 +212,15 @@ def load_data_and_dropdowns(contents, filename):
         
         #retorna el estilo con que se debe ver el boton kde
         kde_style = {'display': 'block','padding-left': '145px'}
-        off_canvas_button ={
+        slider_container_style ={
                 'flex-direction': 'column',
                 'display': 'block',
-                'padding-top': 7,
                 'padding-bottom': 5, 
-                'flex': 2
+                'flex': 1,
+                'overflow': 'auto', 
         }
         id='sliders_contain',
-        return df.to_dict('records'),kde_style, off_canvas_button
+        return df.to_dict('records'),kde_style, slider_container_style
     else:
         raise dash.exceptions.PreventUpdate
 ##########################################################################################################################################################
@@ -225,7 +234,7 @@ def load_data_and_dropdowns(contents, filename):
 def generate_map(df_dict, current_figure, current_config, kde_output):
     # Si no se creo el df la funcion se sale directamente
     if df_dict is None:
-        return {'display': 'none'}, {'display': 'block'}, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
     ctx = dash.callback_context
     triggered_by_kde_output = ctx.triggered and ctx.triggered[0]['prop_id'] == 'kde-output.data'
@@ -280,8 +289,13 @@ def generate_map(df_dict, current_figure, current_config, kde_output):
         'displaylogo': False,
         'autosizable': True,
     }
+    style_map={
+        'display': 'block',
+        'height': '100%',
+        'width': '100%',
+    }
 
-    return {'display': 'block'}, {'display': 'none'}, fig, config
+    return style_map, {'display': 'none'}, fig, config
 ##########################################################################################################################################################
 #Fin Callback que crea el mapa
 ##########################################################################################################################################################
@@ -375,7 +389,6 @@ def filter_df(dropdown_value_1, dropdown_value_2, dropdown_value_3, dropdown_val
 #Inicio Callback para actualizar las opciones de los dropdowns
 ##########################################################################################################################################################
 def update_options_dp(df_dict, dropdown_value_2):
-    #print(dropdown_value_2)
     
     opt = ['Banco Bisa S.A.', 'Banco de Crédito de Bolivia S.A.',
        'Banco Económico Bolivia', 'Banco Fie S.A.', 'Banco Ganadero S.A.',
@@ -385,15 +398,15 @@ def update_options_dp(df_dict, dropdown_value_2):
         return dash.no_update
     
     df = pd.DataFrame(df_dict)
-    print(df['Banco'].dropna().unique())
+
     if len(dropdown_value_2) == 0:
         dropdown_value_2 = opt
-        print('valor bancos: ',len(dropdown_value_2))
+  
 
     data = df[df['Banco'].isin(dropdown_value_2)]['TipoAgencia'].dropna().unique()
     data = sorted(data, key=str) 
     options =[{'label': str(i), 'value': str(i)} for i in data]
-    print(len(options))
+
     return options
 ##########################################################################################################################################################
 #Fin Callback para actualizar las opciones de los dropdowns
@@ -403,17 +416,20 @@ def update_options_dp(df_dict, dropdown_value_2):
 ##########################################################################################################################################################
 #Inicio Callback que despliega el off-canvas
 ##########################################################################################################################################################
-def toggle_offcanvas(n1, n2,df_dict, is_open, input_values, store_data):
+def toggle_offcanvas(n1,n2,df_dict, is_open, input_values, store_data):
+
     ctx = dash.callback_context
     if not ctx.triggered:
         return is_open, input_values, store_data
     else:
         prop_id = ctx.triggered[0]['prop_id']
+
         if 'open-offcanvas' in prop_id:
             # Si 'store_data' está vacío, entonces inicializa con 'intermediate-value', 'data'
             if not store_data:
-                store_data = transform_df(df_dict)  # Aquí debes implementar tu función de transformación
+                store_data = transform_df(df_dict) # carga los valores a los inputs pero no abre la ventana
             return not is_open, [store_data.get(str(i), '') for i in range(14)], store_data
+        
         elif 'input' in prop_id:
             index = json.loads(prop_id.split('.')[0])['index']
             if input_values[index] is None:
@@ -429,7 +445,25 @@ def toggle_offcanvas(n1, n2,df_dict, is_open, input_values, store_data):
 
 
 ##########################################################################################################################################################
-#Fin Callback que transforma los datos
+#Inicio Callback que transforma los datos
+##########################################################################################################################################################
+def update_slider(df_dict):
+
+    if df_dict is None:
+        raise dash.exceptions.PreventUpdate
+    
+    
+    tf = transform_df(df_dict)
+    peso = tf['0']
+    radio = tf['1']
+    return peso, radio
+##########################################################################################################################################################
+#Inicio Callback que transforma los datos
+##########################################################################################################################################################
+
+
+##########################################################################################################################################################
+#Inicio Callback que transforma los datos
 ##########################################################################################################################################################
 def export_dataframe(n_clicks, store_data, intermediate_data):
     if n_clicks is None:  # el botón no ha sido presionado
@@ -457,7 +491,7 @@ def export_dataframe(n_clicks, store_data, intermediate_data):
 
         return df.to_dict(orient='records')
 ##########################################################################################################################################################
-#Fin Callback que despliega el off-canvas
+#Fin Callback que transforma los datos
 ##########################################################################################################################################################
 
 
