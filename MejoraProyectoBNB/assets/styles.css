@@ -65,3 +65,17 @@ input[type="checkbox"] {
 .iBXht {
     width: 100% !important;
 }
+.mapboxgl-map {
+    position: relative;
+    left: 0px!important; /* Ajusta la posición en el eje X según tus necesidades */
+    top: 0px !important;
+    height: 100% !important; /* Ajusta la posición en el eje Y según tus necesidades */
+    /* Otros estilos adicionales que desees aplicar */
+}
+.mapboxgl-tooltip {
+    position: relative;
+    top: 500px!important; /* Ajusta la posición en el eje Y según tus necesidades */
+    left: 200px!important; /* Ajusta la posición en el eje X según tus necesidades */
+    /* Otros estilos adicionales que desees aplicar */
+  }
+  

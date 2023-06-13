@@ -64,7 +64,7 @@ app.callback( #generate_map
         Input('filter-value', 'data'),
         State('map-scatter', 'figure'),
         State('map-scatter', 'config'),
-        Input('kde-output', 'data')
+        Input('kde-output', 'data'),
     ]
 )(generate_map)
 

@@ -47,8 +47,22 @@ def toGeojson(df,latitud,longitud):
 ###################################################################### Funcion para crear la figura del mapa
 def create_map_figure(df, polygon_geojson=None):
 
- 
-    fig = go.Figure()
+    map_styles = [
+    ('Dark Matter', 'dark'), 
+    ('Light Streets', 'streets'),
+    ('Topographic', 'stamen-terrain'),
+    ('Satellite', 'satellite-streets'),
+    ('OpenStreets', 'open-street-map'),
+    ]
+
+    buttons = []
+    for i, (label, style) in enumerate(map_styles):
+        buttons.append(
+            dict(label=label,
+                method="relayout",
+                args=[{"mapbox.style": style}])
+        )
+        fig = go.Figure()
     
     if polygon_geojson is not None:
         gdf = gpd.GeoDataFrame.from_features(polygon_geojson['features'])# crea un gejson a partir del dicionario features
@@ -94,6 +108,7 @@ def create_map_figure(df, polygon_geojson=None):
 
     fig.update_layout(
         autosize=True,
+        #title="Holla",  # Establece el título como una cadena vacía
         hovermode='closest',
         margin=dict(l=0, r=0, t=0, b=0),
         mapbox=dict(
@@ -101,8 +116,24 @@ def create_map_figure(df, polygon_geojson=None):
             style='dark',
             center={'lat': df.Latitud.mean(), 'lon': df.Longitud.mean()},
             zoom = 11,
-            uirevision = 'constant' # agrega esta línea
+            uirevision = 'constant', # agrega esta línea
+            #title='',  # Quita el título del gráfico
+            #visible=False  # Quita el texto de la barra de título
         ),
+        updatemenus=[
+        dict(
+            buttons=buttons,
+            direction="right",
+            pad={"r": 0, "t": 10, "b": 0, "l": 10},
+            showactive=False,
+            x=0.0,
+            xanchor="left",
+            y=1.1,
+            yanchor="top",
+            bgcolor='#333',  # Cambia el color del botón a azul
+            font=dict(color='white', size=14),  # Cambia el estilo de fuente del botón
+        )
+    ]
         
     )
 
@@ -241,6 +272,13 @@ def load_data_and_dropdowns(contents, filename):
 #Fin Callback que almacena el df
 ##########################################################################################################################################################
 
+map_styles = [
+    ('Dark Matter', 'dark'),
+    ('Light Streets', 'streets'),
+    ('Topographic', 'stamen-terrain'),
+    ('Satellite', 'satellite-streets'),
+    ('OpenStreets', 'open-street-map'),
+]
 
 ##########################################################################################################################################################
 #Inicio Callback que crea el mapa

@@ -3,8 +3,24 @@ import dash_bootstrap_components as dbc
 import dash_leaflet as dl
 import dash_daq as daq
 
-PLOTLY_LOGO = "https://github.com/joelsilva11/Altitude/blob/main/logo-blanco.png"
+PLOTLY_LOGO = "https://raw.githubusercontent.com/joelsilva11/GIS/main/logo-blanco.png"
 
+map_styles = [
+    ('Dark Matter', 'dark'),
+    ('Light Streets', 'streets'),
+    ('Topographic', 'stamen-terrain'),
+    ('Satellite', 'satellite-streets'),
+    ('OpenStreets', 'open-street-map'),
+]
+
+map_dropdown = dbc.DropdownMenu(
+    label="Map Style",
+    id="map-dropdown",
+    children=[
+        dbc.DropdownMenuItem(style.capitalize(), id=f"map-dropdown-item-{style}", active=i == 0)
+        for i, (_, style) in enumerate(map_styles)
+    ],
+)
 
 ################################################################ Creamos las opciones de los filtros para no hacerlos muy complicado
 ################################################Opciones clase
@@ -561,6 +577,7 @@ layout = html.Div([
             create_slider('Hotels','6'),
             ############################################### Slider 7
             create_slider('Otros','7'),
+            map_dropdown,
 
             ############################################### Inicio Div que contiene al Boton que oculta el canvas
             html.Div([
