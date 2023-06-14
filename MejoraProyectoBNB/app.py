@@ -111,9 +111,7 @@ app.callback(  # filter_df
         Input("checklist-3", "value"),
         Input("checklist-4", "value"),
         Input("checklist-5", "value"),
-        # Input("checklist-6", "value"),
         Input("switches-bnb", "value"),
-        Input("switches-agn", "value"),
         Input("store-transformed", "data"),
     ],
 )(filter_df)
@@ -188,4 +186,4 @@ create_callbacks("4", opciones_ceme)
 create_callbacks("5", opciones_hoteles)
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=True, port=8051)

@@ -173,7 +173,7 @@ def transform_df(df_t):
     store_data = {}
 
     for i, cls in enumerate(classes):
-        if cls == "Agencia":
+        if cls == "sAgencia":
             # saca el peso y radio de agencias BNB
             p = df[
                 (df["Clase"] == cls) & (df["Banco"] == "Banco Nacional de Bolivia S.A.")
@@ -232,6 +232,8 @@ def load_data_and_dropdowns(contents, filename):
         return dash.no_update, dash.no_update, dash.no_update
 
     df = parse_contents(contents, filename)
+    # print("length of df: ",len(df))
+    # print("columna banco: ", df.IDBN.unique())
 
     if isinstance(df, pd.DataFrame):
         # Generar la columna de colores según la categoría
@@ -354,7 +356,6 @@ def filter_df(
     dropdown_value_4,
     dropdown_value_5,
     switch_bnb,
-    switch_agn,
     df_dict,
 ):
     # Si no se creo el df la funcion se sale directamente
@@ -364,15 +365,15 @@ def filter_df(
     # convierte la entrada df_dict en un df
     df = pd.DataFrame(df_dict)
 
+    _df_bnb = df[df["IDBN"] == "BNB"]
+
     # esta es un verificacion de refuerzo para ver si el csv tien columnas latitud y longitud si no tiene sale del callback
     if "Latitud" not in df.columns or "Longitud" not in df.columns:
         raise dash.exceptions.PreventUpdate
 
     # filtra los tipos de puntos
     if dropdown_value_1 is None or len(dropdown_value_1) == 0:
-        df_t = df.drop(df.index)
-        # print("")
-
+        df_t = df 
     else:
         df_t = df[df["value_c"].isin(dropdown_value_1)]
 
@@ -382,47 +383,54 @@ def filter_df(
     else:
         df_banco = df_t[df_t["IDBN"].isin(dropdown_value_2)]
 
-    # print(_df_agn)
+    # Filtrar ATMs:
+    df_agn = df_banco[df_banco['TipoAgencia'] == "Agencia"]
+    
+    if "Otro" in switch_bnb:
+        df_agn = df_banco[df_banco['value_c'] == "AGNO"]
+        df_bnb_p = _df_bnb[_df_bnb["value_c"] == "AGNB"]
+    else: 
+        df_agn = df_banco[df_banco['TipoAgencia'] == "Agencia"]
+        df_bnb_p = _df_bnb[_df_bnb["TipoAgencia"] == "Agencia"]
+
+
     _df_atm = df_banco[df_banco["Clase"] == "ATM"]
 
-    df_poi = df_t[
-        df_t["Clase"].isin(
-            [
-                "Centro Comercial",
-                "Mercado",
-                "Supermercado",
-                "Restaurante",
-                "Universidad",
-            ]
-        )
-    ]
+    df_poi = df_t[df_t["Clase"].isin(["Centro Comercial","Mercado","Supermercado","Restaurante","Universidad"])]
 
     _df_hot = df_t[df_t["Clase"] == "Hotel"]
 
     _df_cem = df_t[df_t["Clase"] == "Centro Médico"]
 
     # filtra los BNB
-    if switch_bnb is None or len(switch_bnb) == 0:
+
+    # print("Largo de df: ", len(df_agn))
+    # print("columna banco: ", df_agn.IDBN.unique())
+    # print("="*50)
+
+    if "AGNB" in switch_bnb:
+        df_bnb = df_bnb_p
+    else:
         df_bnb = pd.DataFrame()
-    else:
-        df_bnb = df[df["value_c"].isin(switch_bnb)]
 
-    if switch_agn is None or len(switch_agn) == 0:
-        df_agn = pd.DataFrame()
+    if "ATMB" in switch_bnb:
+        df_bnb_at = _df_bnb[_df_bnb["value_c"] == "ATMB"]
     else:
-        df_agn = df[df["TipoAgencia"].isin(switch_agn)]
+        df_bnb_at = _df_bnb.drop(_df_bnb.index)
 
-    # filtra los tipo de agencias
-    # if dropdown_value_3 is None or len(dropdown_value_3) == 0:
-    #     df_agn = _df_agn
-    # else:
-    #     df_agn = _df_agn[_df_agn["TipoAgencia"].isin(dropdown_value_3)]
+    
 
     # filtra los tipo de ATM
     if dropdown_value_3 is None or len(dropdown_value_3) == 0:
+        _df_bnb_at = df_bnb_at
         df_atm = _df_atm
     else:
+        _df_bnb_at = df_bnb_at[df_bnb_at["DepositoATM"].isin(dropdown_value_3)]
         df_atm = _df_atm[_df_atm["DepositoATM"].isin(dropdown_value_3)]
+
+    print(df_bnb_at.columns)
+    print(dropdown_value_3)
+    
 
     # filtra los tipo de centros medicos
     if dropdown_value_4 is None or len(dropdown_value_4) == 0:
@@ -436,16 +444,12 @@ def filter_df(
     else:
         df_hot = _df_hot[_df_hot["TipoHotel"].isin(dropdown_value_5)]
 
-    filtered_df = pd.concat([df_atm, df_poi, df_hot, df_cem, df_bnb, df_agn])
-    # print(filtered_df.Peso.unique())
-
-    # print('El numero de datos es:', len(filtered_df))
+    filtered_df = pd.concat([_df_bnb_at, df_atm, df_poi, df_hot, df_cem, df_bnb, df_agn])  
 
     if isinstance(filtered_df, pd.DataFrame):
         return filtered_df.to_dict("records"), len(filtered_df)
     else:
         raise dash.exceptions.PreventUpdate
-
 
 ##########################################################################################################################################################
 # Fin Callback para modificar el dataframe
@@ -464,6 +468,7 @@ def update_options_dp(df_dict, dropdown_value_2):
         "Banco Ganadero S.A.",
         "Banco Mercantil Santa Cruz S.A.",
         "Banco Unión S.A.",
+        "Banco Solidario",
     ]
 
     if df_dict is None:
@@ -577,6 +582,8 @@ def update_dataframe(*args):
     valores = sorted(set(data["value_c"].values()))
 
     df = pd.DataFrame(data)
+    # print("Largo de df: ", len(df))
+    # print("columna banco: ", df.IDBN.unique())
     df.loc[df.value_c == "AGNB", ["Peso", "Radio"]] = pesos[0], radios[0]
     df.loc[df.value_c == "AGNO", ["Peso", "Radio"]] = pesos[1], radios[1]
     df.loc[df.value_c == "ATMO", ["Peso", "Radio"]] = pesos[2], radios[2]
@@ -587,6 +594,9 @@ def update_dataframe(*args):
         pesos[6],
         radios[6],
     )
+
+    # print("Largo de df: ", len(df))
+    # print("columna banco: ", df.IDBN.unique())
 
     return df.to_dict()
 

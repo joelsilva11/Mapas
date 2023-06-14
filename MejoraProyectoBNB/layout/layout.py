@@ -34,13 +34,14 @@ opciones_bancos = [
     {"label": "Banco Mercantil Santa Cruz", "value": "MSC"},
     # {'label': 'Banco Nacional de Bolivia', 'value': 'BNB'},
     {"label": "Banco Unión", "value": "BUN"},
+    {"label": "Banco Solidario", "value": "SOL"}
 ]
 
 ################################################Opciones agencias
 # opciones_agn = ["Otros"]
 # options_agn = [{"label": opcion, "value": opcion} for opcion in opciones_ag]
 
-options_agn = [{"label": "Otros", "value": "Otro"}]
+# options_agn = [{"label": "Otros", "value": "Otro"}]
 
 ################################################Opciones atm
 opciones_atm = [
@@ -70,9 +71,9 @@ opciones_hoteles = [{"label": opcion, "value": opcion} for opcion in opciones_ht
 
 ################################################Opciones BNB
 options_bnb = [
-    {"label": "Agencias", "value": "AGNB"},
-    {"label": "ATMs", "value": "ATMB"},
-    # {"label": "Otras Agencias", "value": "Otro"}
+    {"label": "Agencias BNB", "value": "AGNB"},
+    {"label": "ATMs BNB", "value": "ATMB"},
+    {"label": "Otras Agencias", "value": "Otro"},
 ]
 
 ###################################################################crea la barra de titulo
@@ -116,7 +117,6 @@ navbar = dbc.Navbar(
     dark=True,
     style={"height": "8vh"},
 )
-
 
 ###################################################################crea los slicers
 def create_slider(Titulo, id_suffix):
@@ -464,19 +464,19 @@ layout = html.Div(
                                 "margin-bottom": "7px",
                                 "backgroundColor": "#333",
                                 "borderRadius": "5px",
-                                "height": "11%",
+                                "height": "14%",
                             },
                         ),
                         ################################################### Selector Otras Agencias
-                        html.Div(
-                            create_switch("agn", "Otras Agencias", options_agn),
-                            style={
-                                "margin-bottom": "7px",
-                                "backgroundColor": "#333",
-                                "borderRadius": "5px",
-                                "height": "11%",
-                            },
-                        ),
+                        # html.Div(
+                        #     create_switch("agn", "Otras Agencias", options_agn),
+                        #     style={
+                        #         "margin-bottom": "7px",
+                        #         "backgroundColor": "#333",
+                        #         "borderRadius": "5px",
+                        #         "height": "11%",
+                        #     },
+                        # ),
                         ################################################### Indicador de numero de puntos
                         html.Div(
                             [  # Div Card
