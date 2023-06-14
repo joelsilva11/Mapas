@@ -216,7 +216,7 @@ def load_data_and_dropdowns(contents, filename):
 
     # No realiza todos los objetos mantienen sus estados
     if contents is None:
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
     # comprueba si el csv es válido
     df = parse_contents(contents, filename)
@@ -263,7 +263,12 @@ def load_data_and_dropdowns(contents, filename):
             'display':'block'
         }
 
-        return df.to_dict(),kde_style, slider_container_style, tile_style, map_container_style, upload_container_style, layer_container_style
+        dp_style={
+            'flex': 1, #ocupa un sexto de la pantalla horizontalmente
+            'display': 'block'
+        }
+
+        return df.to_dict(),kde_style, slider_container_style, tile_style, map_container_style, upload_container_style, layer_container_style,dp_style
     else:
         raise dash.exceptions.PreventUpdate
 ##########################################################################################################################################################
@@ -282,12 +287,10 @@ mapbox_style_dict = {
 #Inicio Callback que crea el mapa
 ##########################################################################################################################################################
 def generate_map(df_dict, kde_dict, tile_style, layer_value):
+
     # Si no se creo el df la funcion se sale directamente
-
-    
-
     if df_dict is None:
-        return dash.no_update, dash.no_update
+        return dash.no_update
 
     #comprueba que el disparador fue el poligono kde retorna True
     ctx = dash.callback_context
@@ -352,11 +355,23 @@ def generate_map(df_dict, kde_dict, tile_style, layer_value):
             #le agrego el trace de los puntos
             fig.add_trace(
                 go.Scattermapbox(
+                    lat=filtered_df['Latitud'],
+                    lon=filtered_df['Longitud'],
+                    mode='markers',
+                    marker=go.scattermapbox.Marker(
+                        size=12,  # Asegúrate de que este tamaño sea más grande que el de los puntos principales
+                        color='black',  # Este será el color del "borde"
+                    ),
+                    hoverinfo='none'
+                )
+            )
+            fig.add_trace(
+                go.Scattermapbox(
                     lat= filtered_df['Latitud'],
                     lon= filtered_df['Longitud'],
                     mode='markers',
                     marker=go.scattermapbox.Marker(
-                        size=10,
+                        size=9,
                         color= filtered_df['Color'],
                     ),
                     text= filtered_df[['Clase']].values,
@@ -386,55 +401,9 @@ def generate_map(df_dict, kde_dict, tile_style, layer_value):
     )
     #print('Latitud:',filtered_df.Latitud.mean(),end='      ')
     #print('Longitud:',filtered_df.Longitud.mean())
-
-
-    # Comprobar si se generó un nuevo JSON de polígonos mediante el kde-output
-    """if triggered_by_kde_output:
-        # Obtener el GeoJSON de los polígonos
-        kde_geojson = json.loads(kde_output)
-    else:
-        kde_geojson = None"""
-
-    """#Comprueba si existe una figura, si existe solo actualiza los puntos si no pasa crear la figura y tambien si no se disparo el KDE
-    if current_figure is not None and current_config is not None and not triggered_by_kde_output:
-        fig = go.Figure(current_figure)
-
-        # Encuentra la traza Scattermapbox
-        scatter_trace = None
-        for trace in fig.data:
-            if isinstance(trace, go.Scattermapbox):
-                scatter_trace = trace
-                break
-
-
-        # Si encontramos la traza Scattermapbox, actualizamos los datos
-        if scatter_trace is not None:
-            scatter_trace.lat = filtered_df['Latitud']
-            scatter_trace.lon = filtered_df['Longitud']
-            scatter_trace.marker = dict(
-                size=10,  # Actualizar el tamaño de los puntos
-                color=filtered_df['Color'],    
-            )  # Actualizar los colores
-            scatter_trace.text = filtered_df[['Clase']].values  # Actualizar las clases
-            fig.update_traces(scatter_trace, selector=dict(type='scattermapbox'))
-            #print('siempre estoy aqui?')
-            
-            ##if triggered_by_dropdown:
-                ##return dash.no_update, dash.no_update, fig, current_config
-        
-    else:
-        fig = create_map_figure(filtered_df, kde_geojson)
-"""
-    config = {
-        'scrollZoom': True,
-        'displayModeBar': True,
-        'editable': True,
-        'displaylogo': False,
-        'autosizable': True,
-    }
     
 
-    return fig, config
+    return fig
 ##########################################################################################################################################################
 #Fin Callback que crea el mapa
 ##########################################################################################################################################################

@@ -548,8 +548,10 @@ layout = html.Div([
             
             ),
         ],
+        id='dp_container',
         style={
             'flex': 1, #ocupa un sexto de la pantalla horizontalmente
+            'display': 'none'
         },
         ),
         ############################################### Fin Div que contiene los dropdowns personalizados
@@ -589,7 +591,14 @@ layout = html.Div([
             html.Div([
                 dcc.Graph(
                     id='map-scatter',
-                    style={'height': '100%'}
+                    style={'height': '100%'},
+                    config = {
+                        'scrollZoom': True,
+                        'displayModeBar': True,
+                        'editable': True,
+                        'displaylogo': False,
+                        'autosizable': True,
+                    }
                 ),
             ],
             id='map-container',
