@@ -39,22 +39,26 @@ app.layout = html.Div([
 def update_map(slider_value):
 
     # Filtrar los puntos basados en el valor del slider
-    filtered_lats = [lat for lat, id in zip(lats, ids) if id == slider_value]
-    filtered_lons = [lon for lon, id in zip(lons, ids) if id == slider_value]
+    filtered_lats = [lat for lat, id in zip(lats, ids) if id <= slider_value]
+    filtered_lons = [lon for lon, id in zip(lons, ids) if id <= slider_value]
 
+    # Crea el objeto figura
     fig = go.Figure()
 
-    fig.add_trace(go.Scattermapbox(
-        lat=filtered_lats,
-        lon=filtered_lons,
-        mode='markers',
-        marker=go.scattermapbox.Marker(
-            size=14,
-            color='red'
-        ),
-        text=[f'Punto {id}' for id in ids if id == slider_value],
-        name='Puntos',
-    ))
+    # le agrega un trace
+    fig.add_trace(
+        go.Scattermapbox(
+            lat=filtered_lats,
+            lon=filtered_lons,
+            mode='markers',
+            marker=go.scattermapbox.Marker(
+                size=14,
+                color='red'
+            ),
+            text=[f'Punto {id}' for id in ids if id == slider_value],
+            name='Puntos',
+        )
+    )
 
     fig.update_layout(
         autosize=True,
