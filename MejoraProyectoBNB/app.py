@@ -45,18 +45,23 @@ def create_callbacks(id_suffix, options):
 
 #este callback se ejecuta las veces que sea necesario hasta que se cargue correctamente el csv
 app.callback( #load_data_and_dropdowns
-    Output('intermediate-value', 'data'),  # Actualiza el Store en lugar del mapa
-    Output('kde-button_container', 'style'),
-    Output('sliders_contain', 'style'),
+    [
+    Output('intermediate-value', 'data'),  # crea una copia del df para que se pase los otros callbacks
+    Output('kde-button_container', 'style'),# vuelve visible el boton KDE
+    Output('sliders_contain', 'style'), # vuelve visible el contenedor de sliders
+    Output('tile_container', 'style'), # vuelve visible el boton tile layer
+    Output('map-container', 'style'), # vuelve visible el contenedor del mapa
+    Output('upload-container', 'style'),# oculta el upload
+    ],
+    [
     Input('upload-csv', 'contents'),
     State('upload-csv', 'filename')
+    ]
 )(load_data_and_dropdowns)
 
-#este callback se ejecuta una sola vez para crear el mapa
+#este callback modifica el mapa 
 app.callback( #generate_map
     [
-        Output('map-container', 'style'),
-        Output('upload-container', 'style'),
         Output('map-scatter', 'figure'),
         Output('map-scatter', 'config')
     ],

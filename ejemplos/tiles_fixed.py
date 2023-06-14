@@ -3,8 +3,10 @@ from dash import dcc, html
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 
-# Diccionario con los estilos de los mapas
+#token necesario para cargar los tiles de los mapas
 mapbox_access_token = 'pk.eyJ1Ijoiam1zczExIiwiYSI6ImNsN3RsbHpldDEwNDIzdm1rMG1qZWx6cmUifQ.svDPURTTxi1aHuHpzPU8sQ'
+
+#opciones para el boton tile layers
 mapbox_style_dict = {
     "Light": "light",
     "Dark": "dark",
