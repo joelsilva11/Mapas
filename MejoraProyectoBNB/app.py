@@ -52,6 +52,7 @@ app.callback( #load_data_and_dropdowns
     Output('tile_container', 'style'), # vuelve visible el boton tile layer
     Output('map-container', 'style'), # vuelve visible el contenedor del mapa
     Output('upload-container', 'style'),# oculta el upload
+    Output('layer_container', 'style'), #vuelve visible el drop layers
     ],
     [
     Input('upload-csv', 'contents'),
@@ -63,13 +64,14 @@ app.callback( #load_data_and_dropdowns
 app.callback( #generate_map
     [
         Output('map-scatter', 'figure'),
-        Output('map-scatter', 'config')
+        Output('map-scatter', 'config'),
     ],
     [
         Input('filter-value', 'data'),
-        State('map-scatter', 'figure'),
-        State('map-scatter', 'config'),
         Input('kde-output', 'data'),
+        Input('id_tile', 'value'),
+        Input('id_layer', 'value'),
+        #State('map-scatter', 'config'), 
     ]
 )(generate_map)
 

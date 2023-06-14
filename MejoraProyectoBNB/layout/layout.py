@@ -15,6 +15,11 @@ mapbox_style_dict = {
     'Open':'open-street-map',
 }
 
+################################################ Opciones del boton layers
+options_layers_dict=[
+            {'label': 'Puntos', 'value': 'puntos'},
+            {'label': 'Contornos', 'value': 'contornos'}
+        ]
 
 ################################################################ Creamos las opciones de los filtros para no hacerlos muy complicado
 ################################################Opciones clase
@@ -441,6 +446,36 @@ def create_droptiles(id_tile, opt_tiles):
     },
     )
 
+#funcion para crear el dropdwon de layers
+def create_droplayers(id_tile, opt_tiles):
+    return html.Div(
+    [
+        dcc.Dropdown(
+            id=id_tile,
+            options=opt_tiles,
+            value=['puntos'],
+            searchable=False,
+            multi=True,
+            clearable=False,
+            placeholder="",
+        style={
+        'backgroundColor': '#222',
+        'width': '100%'
+        },
+        ),
+    ],
+    style={
+        'position': 'absolute', 
+        'top': '10px', 
+        'left': '80px', 
+        'z-index': '12',
+        'width':'140px',
+        
+    },
+    )
+
+
+
 
 #############################################################################################################################################
 #Estructura principal de la pagina
@@ -573,9 +608,20 @@ layout = html.Div([
             id='tile_container',
             style={
                 'display':'none'
+            },
+            ),
+            ############################################### Fin dropdown tile layers
+
+            ############################################### Inicio dropdown layers
+            html.Div([
+            create_droplayers('id_layer', options_layers_dict)
+            ],
+            id='layer_container',
+            style={
+                'display':'none'
             }
             )
-            ############################################### Fin dropdown tile layers
+            ############################################### Fin dropdown layers
         ],
         style={
             'flex': 4,

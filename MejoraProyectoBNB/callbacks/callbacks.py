@@ -216,7 +216,7 @@ def load_data_and_dropdowns(contents, filename):
 
     # No realiza todos los objetos mantienen sus estados
     if contents is None:
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
     # comprueba si el csv es válido
     df = parse_contents(contents, filename)
@@ -258,47 +258,144 @@ def load_data_and_dropdowns(contents, filename):
         #hace invisible el contenedor del upload
         upload_container_style = {'display': 'none'}
 
-        return df.to_dict(),kde_style, slider_container_style, tile_style, map_container_style, upload_container_style
+        #hace visible el boton tile layer
+        layer_container_style = {
+            'display':'block'
+        }
+
+        return df.to_dict(),kde_style, slider_container_style, tile_style, map_container_style, upload_container_style, layer_container_style
     else:
         raise dash.exceptions.PreventUpdate
 ##########################################################################################################################################################
 #Fin Callback que almacena el df
 ##########################################################################################################################################################
 
-map_styles = [
-    ('Dark Matter', 'dark'),
-    ('Light Streets', 'streets'),
-    ('Topographic', 'stamen-terrain'),
-    ('Satellite', 'satellite-streets'),
-    ('OpenStreets', 'open-street-map'),
-]
+mapbox_style_dict = {
+    'Dark':'dark',
+    'Light':'streets',
+    'Topo':'stamen-terrain',
+    'Sate':'satellite-streets',
+    'Open':'open-street-map',
+}
 
 ##########################################################################################################################################################
 #Inicio Callback que crea el mapa
 ##########################################################################################################################################################
-def generate_map(df_dict, current_figure, current_config, kde_output):
+def generate_map(df_dict, kde_dict, tile_style, layer_value):
     # Si no se creo el df la funcion se sale directamente
+
+    
 
     if df_dict is None:
         return dash.no_update, dash.no_update
 
+    #comprueba que el disparador fue el poligono kde retorna True
     ctx = dash.callback_context
     triggered_by_kde_output = ctx.triggered and ctx.triggered[0]['prop_id'] == 'kde-output.data'
 
+    
     filtered_df = pd.DataFrame(df_dict)
 
     # esta es un verificacion de refuerzo para ver si el csv tien columnas latitud y longitud si no tiene sale del callback
     if 'Latitud' not in filtered_df.columns or 'Longitud' not in filtered_df.columns:
         raise dash.exceptions.PreventUpdate
     
+    # Crea el objeto figura
+    fig = go.Figure()
+
+
+    # Añade un trazo invisible al mapa.
+    fig.add_trace(
+        go.Scattermapbox(
+        lat=[-17.389717505931653],  # Estas coordenadas pueden ser cualquier punto dentro del rango visible del mapa.
+        lon=[-66.17030830313263],
+        mode='markers',
+        marker=go.scattermapbox.Marker(
+            size=0,  # El tamaño 0 hace el marcador invisible.
+        ),
+        hoverinfo='none'  # Esto evita que aparezca un tooltip cuando el usuario pasa el cursor sobre el marcador.
+    )
+    )
+
+
+    if layer_value:         # Si hay alguna capa seleccionada
+
+    #Si el disparo de dio por el poligono KDE entonces carga el json
+        if (triggered_by_kde_output or kde_dict is not None) and 'contornos' in layer_value:
+
+            kde_geojson = json.loads(kde_dict)
+            gdf = gpd.GeoDataFrame.from_features(kde_geojson['features'])
+
+            choropleth_layer = go.Choroplethmapbox(
+                #pasa los valores a la variables geojson
+                geojson=kde_geojson,
+                locations=gdf.index.astype(str), #enumera todos los poligonos y is indices los vuelve texto
+                z=gdf['Nivel'], # Usar la columna '0' como valores de color 
+                colorscale='Turbo',
+                hoverinfo='all', # Muestra toda la información en el hover
+                hovertemplate='Nivel: %{z}<extra></extra>', # Personaliza el hover para mostrar solo la información que deseas
+                #marker_opacity=0.2,
+                showscale=False,# oculta la barra fea
+                #marker_line_width=10
+                marker=go.choroplethmapbox.Marker(
+                    opacity=0.2,
+                    line_width=2,  # Ajustar este valor para cambiar el grosor de las líneas de contorno
+                    line_color='rgba(0,0,0,0.9)'  # Ajustar este valor para cambiar el color de las líneas de contorno
+                ),
+                name='Contornos',
+            )
+            fig.add_trace(choropleth_layer)
+            #print(gdf)
+            #print('='*20)
+
+        if 'puntos' in layer_value:
+            #le agrego el trace de los puntos
+            fig.add_trace(
+                go.Scattermapbox(
+                    lat= filtered_df['Latitud'],
+                    lon= filtered_df['Longitud'],
+                    mode='markers',
+                    marker=go.scattermapbox.Marker(
+                        size=10,
+                        color= filtered_df['Color'],
+                    ),
+                    text= filtered_df[['Clase']].values,
+                    name='Puntos',
+                )
+            )
+
+
+    #Este es el estilo principal del mapa debe mantenerse fijo en zoom y centro
+    fig.update_layout(
+        autosize=True,
+        hovermode='closest',
+        margin=dict(l=0, r=0, t=0, b=0),
+        showlegend=False,
+        mapbox=dict(
+            accesstoken=token,
+            bearing=0,
+            center=dict(
+                lat=-17.389717505931653,
+                lon=-66.17030830313263
+            ),
+            pitch=0,
+            zoom=11,
+            style=mapbox_style_dict[tile_style],  
+            uirevision='constant'  # Mantener el estado del zoom/paneo entre actualizaciones
+        ),
+    )
+    #print('Latitud:',filtered_df.Latitud.mean(),end='      ')
+    #print('Longitud:',filtered_df.Longitud.mean())
+
+
     # Comprobar si se generó un nuevo JSON de polígonos mediante el kde-output
-    if triggered_by_kde_output:
+    """if triggered_by_kde_output:
         # Obtener el GeoJSON de los polígonos
         kde_geojson = json.loads(kde_output)
     else:
-        kde_geojson = None
+        kde_geojson = None"""
 
-    #Comprueba si existe una figura, si existe solo actualiza los puntos si no pasa crear la figura y tambien si no se disparo el KDE
+    """#Comprueba si existe una figura, si existe solo actualiza los puntos si no pasa crear la figura y tambien si no se disparo el KDE
     if current_figure is not None and current_config is not None and not triggered_by_kde_output:
         fig = go.Figure(current_figure)
 
@@ -327,7 +424,7 @@ def generate_map(df_dict, current_figure, current_config, kde_output):
         
     else:
         fig = create_map_figure(filtered_df, kde_geojson)
-
+"""
     config = {
         'scrollZoom': True,
         'displayModeBar': True,
