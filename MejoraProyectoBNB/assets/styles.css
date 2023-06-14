@@ -66,6 +66,12 @@ input[type="checkbox"] {
     width: 100% !important;
 }
 
-canvas.mapboxgl-canvas {
-    transform: translateY(0px) !important; /* Ajusta el valor negativo según tus necesidades */
-  }
+.Select-menu-outer {
+    background: #333;
+    color: #fff;
+}
+
+.Select-value-label {
+    color: #fff !important;
+}
+

@@ -1,26 +1,20 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
-import dash_leaflet as dl
 import dash_daq as daq
 
+
+# logo Altitude en el Nav bar como barra de título
 PLOTLY_LOGO = "https://raw.githubusercontent.com/joelsilva11/GIS/main/logo-blanco.png"
 
-map_styles = [
-    ('Dark Matter', 'dark'),
-    ('Light Streets', 'streets'),
-    ('Topographic', 'stamen-terrain'),
-    ('Satellite', 'satellite-streets'),
-    ('OpenStreets', 'open-street-map'),
-]
+################################################ Opciones del boton tile layers
+mapbox_style_dict = {
+    'Dark':'dark',
+    'Light':'streets',
+    'Topo':'stamen-terrain',
+    'Sate':'satellite-streets',
+    'Open':'open-street-map',
+}
 
-map_dropdown = dbc.DropdownMenu(
-    label="Map Style",
-    id="map-dropdown",
-    children=[
-        dbc.DropdownMenuItem(style.capitalize(), id=f"map-dropdown-item-{style}", active=i == 0)
-        for i, (_, style) in enumerate(map_styles)
-    ],
-)
 
 ################################################################ Creamos las opciones de los filtros para no hacerlos muy complicado
 ################################################Opciones clase
@@ -422,7 +416,30 @@ def create_switch(id_suffix,Titulo,options_sw):
     },
     )
 
-
+#funcion para crear el dropdwon de tiles
+def create_droptiles(id_tile, opt_tiles):
+    return html.Div(
+    [
+        dcc.Dropdown(
+            id=id_tile,
+            options=[{'label': i, 'value': i} for i in opt_tiles.keys()],
+            value='Dark',
+            searchable=False,
+            clearable=False,
+        style={
+        'backgroundColor': '#222',
+        'width': '100%'
+        },
+        ),
+    ],
+    style={
+        'position': 'absolute', 
+        'top': '10px', 
+        'left': '10px', 
+        'z-index': '100',
+        'width':'70px'
+    },
+    )
 
 
 #############################################################################################################################################
@@ -548,6 +565,17 @@ layout = html.Div([
             }
             ),
             ############################################### Fin Div que contiene Grafico mapa
+
+            ############################################### Inicio dropdown tile layers
+            html.Div([
+            create_droptiles('id_tile', mapbox_style_dict)
+            ],
+            id='tile_container',
+            style={
+                'display':'none'
+            }
+            )
+            ############################################### Fin dropdown tile layers
         ],
         style={
             'flex': 4,
@@ -555,7 +583,8 @@ layout = html.Div([
             'margin-left': 7,
             'margin-right': 7,
             'borderRadius': '5px',
-            'height': '100%',   
+            'height': '100%',
+            'position': 'relative',   
         }
         ),
         ############################################### Fin Div que contiene upload y mapa a la vez
@@ -577,7 +606,6 @@ layout = html.Div([
             create_slider('Hotels','6'),
             ############################################### Slider 7
             create_slider('Otros','7'),
-            map_dropdown,
 
             ############################################### Inicio Div que contiene al Boton que oculta el canvas
             html.Div([
@@ -603,7 +631,7 @@ layout = html.Div([
         style={
                 #'flex-direction': 'column',
                 'flex': 1,
-                'display': 'block',
+                'display': 'none',
                 #'padding-top': 7,
                 'padding-bottom': 5,
                 'height': '100%',

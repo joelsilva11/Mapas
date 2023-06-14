@@ -214,10 +214,13 @@ def load_data_and_dropdowns(contents, filename):
         '#406FC4'  #Universidad
         ]
 
+    # No realiza todos los objetos mantienen sus estados
     if contents is None:
-        return dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
+    # comprueba si el csv es válido
     df = parse_contents(contents, filename)
+
 
     if isinstance(df, pd.DataFrame):
         # Generar la columna de colores según la categoría
@@ -226,8 +229,12 @@ def load_data_and_dropdowns(contents, filename):
         df['Color'] = df['value_c'].map(color_mapping)
         
         #retorna el estilo con que se debe ver el boton kde
-        kde_style = {'display': 'block','padding-left': '145px'}
+        kde_style = {
+            'display': 'block',
+            'padding-left': '145px'
+        }
 
+        #retorna el estilo del contenedor de sliders
         slider_container_style ={
                 'flex-direction': 'column',
                 'display': 'block',
@@ -235,8 +242,23 @@ def load_data_and_dropdowns(contents, filename):
                 'flex': 1,
                 'overflow': 'auto', 
         }
-        #id='sliders_contain',
-        return df.to_dict(),kde_style, slider_container_style
+
+        #hace visible el boton tile layer
+        tile_style = {
+            'display':'block'
+        }
+
+        #hace visible el contenerdor del mapa y le da estilo
+        map_container_style = {
+        'display': 'block',
+        'height': '100%',
+        'width': '100%',
+        }
+
+        #hace invisible el contenedor del upload
+        upload_container_style = {'display': 'none'}
+
+        return df.to_dict(),kde_style, slider_container_style, tile_style, map_container_style, upload_container_style
     else:
         raise dash.exceptions.PreventUpdate
 ##########################################################################################################################################################
@@ -256,8 +278,9 @@ map_styles = [
 ##########################################################################################################################################################
 def generate_map(df_dict, current_figure, current_config, kde_output):
     # Si no se creo el df la funcion se sale directamente
+
     if df_dict is None:
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update
 
     ctx = dash.callback_context
     triggered_by_kde_output = ctx.triggered and ctx.triggered[0]['prop_id'] == 'kde-output.data'
@@ -312,13 +335,9 @@ def generate_map(df_dict, current_figure, current_config, kde_output):
         'displaylogo': False,
         'autosizable': True,
     }
-    style_map={
-        'display': 'block',
-        'height': '100%',
-        'width': '100%',
-    }
+    
 
-    return style_map, {'display': 'none'}, fig, config
+    return fig, config
 ##########################################################################################################################################################
 #Fin Callback que crea el mapa
 ##########################################################################################################################################################
