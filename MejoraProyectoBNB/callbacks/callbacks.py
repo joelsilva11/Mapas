@@ -47,22 +47,7 @@ def toGeojson(df,latitud,longitud):
 ###################################################################### Funcion para crear la figura del mapa
 def create_map_figure(df, polygon_geojson=None):
 
-    map_styles = [
-    ('Dark Matter', 'dark'), 
-    ('Light Streets', 'streets'),
-    ('Topographic', 'stamen-terrain'),
-    ('Satellite', 'satellite-streets'),
-    ('OpenStreets', 'open-street-map'),
-    ]
-
-    buttons = []
-    for i, (label, style) in enumerate(map_styles):
-        buttons.append(
-            dict(label=label,
-                method="relayout",
-                args=[{"mapbox.style": style}])
-        )
-        fig = go.Figure()
+    fig = go.Figure()
     
     if polygon_geojson is not None:
         gdf = gpd.GeoDataFrame.from_features(polygon_geojson['features'])# crea un gejson a partir del dicionario features
@@ -96,12 +81,12 @@ def create_map_figure(df, polygon_geojson=None):
             size=10,
             color=df['Color'],
         ),
-        
+        text=df['Clase'],  # Agrega el texto que deseas mostrar en cada punto
         hovertemplate=
         '<b>Latitud</b>: %{lat}<br>' +
         '<b>Longitud</b>: %{lon}<br>' +
-        '<b>Tipo de punto</b>: %{customdata[0]}<extra></extra>',
-        customdata=df[['Clase']].values
+        '<b>Tipo de punto</b>: %{text}<extra></extra>',
+        #customdata=df[['Clase']].values
     )
 
     fig.add_trace(scatter_trace)
@@ -116,24 +101,10 @@ def create_map_figure(df, polygon_geojson=None):
             style='dark',
             center={'lat': df.Latitud.mean(), 'lon': df.Longitud.mean()},
             zoom = 11,
-            uirevision = 'constant', # agrega esta línea
+            uirevision = 'constant', # agrega esta línea para cogelar el mapa
             #title='',  # Quita el título del gráfico
             #visible=False  # Quita el texto de la barra de título
         ),
-        updatemenus=[
-        dict(
-            buttons=buttons,
-            direction="right",
-            pad={"r": 0, "t": 10, "b": 0, "l": 10},
-            showactive=False,
-            x=0.0,
-            xanchor="left",
-            y=1.1,
-            yanchor="top",
-            bgcolor='#333',  # Cambia el color del botón a azul
-            font=dict(color='white', size=14),  # Cambia el estilo de fuente del botón
-        )
-    ]
         
     )
 
@@ -324,7 +295,7 @@ def generate_map(df_dict, current_figure, current_config, kde_output):
                 size=10,  # Actualizar el tamaño de los puntos
                 color=filtered_df['Color'],    
             )  # Actualizar los colores
-            scatter_trace.customdata = filtered_df[['Clase']].values  # Actualizar las clases
+            scatter_trace.text = filtered_df[['Clase']].values  # Actualizar las clases
             fig.update_traces(scatter_trace, selector=dict(type='scattermapbox'))
             #print('siempre estoy aqui?')
             
