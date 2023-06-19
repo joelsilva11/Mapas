@@ -129,7 +129,7 @@ def perform_kde(df, contour_levels=12):
     radii = radio.to_list()
 
     # Crear una cuadrícula de puntos
-    x_grid, y_grid = np.meshgrid(np.linspace(min(x), max(x), 400), np.linspace(min(y), max(y), 200))
+    x_grid, y_grid = np.meshgrid(np.linspace(min(x)-600, max(x)+600, 400), np.linspace(min(y)-600, max(y)+600, 400))
 
     # Calcular la influencia de cada punto en la cuadrícula
     influence = np.zeros_like(x_grid)
@@ -154,6 +154,8 @@ def perform_kde(df, contour_levels=12):
 
     # Crear el GeoDataFrame de polígonos
     gdf_polygons = gpd.GeoDataFrame(polygons,crs="EPSG:32720")
+
+    #gdf_polygons['opacity'] = 0.2 + gdf_polygons['Nivel'] / (2 * contour_levels)
 
     return gdf_polygons.to_crs(epsg=4326)
 ###################################################################### hace obtine los valores peso y radio del df
@@ -245,7 +247,7 @@ def load_data_and_dropdowns(contents, filename):
 
         #hace visible el boton tile layer
         tile_style = {
-            'display':'block'
+            'display':'block',
         }
 
         #hace visible el contenerdor del mapa y le da estilo
@@ -260,7 +262,7 @@ def load_data_and_dropdowns(contents, filename):
 
         #hace visible el boton tile layer
         layer_container_style = {
-            'display':'block'
+            'display':'none'
         }
 
         dp_style={
@@ -276,11 +278,12 @@ def load_data_and_dropdowns(contents, filename):
 ##########################################################################################################################################################
 
 mapbox_style_dict = {
-    'Dark':'dark',
-    'Light':'streets',
-    'Topo':'stamen-terrain',
-    'Sate':'satellite-streets',
-    'Open':'open-street-map',
+    "Light": "light",
+    'Dark Map':'dark',
+    'Streets':'streets',
+    'Topographic':'stamen-terrain',
+    'Satellite Streets':'satellite-streets',
+    'Open Streets':'open-street-map',
 }
 
 ##########################################################################################################################################################
@@ -288,17 +291,20 @@ mapbox_style_dict = {
 ##########################################################################################################################################################
 def generate_map(df_dict, kde_dict, tile_style, layer_value):
 
+    #print(tl)
+    #print(tile_style)
+    #print('='*100)
     # Si no se creo el df la funcion se sale directamente
     if df_dict is None:
         return dash.no_update
-
+    
     #comprueba que el disparador fue el poligono kde retorna True
     ctx = dash.callback_context
     triggered_by_kde_output = ctx.triggered and ctx.triggered[0]['prop_id'] == 'kde-output.data'
 
     
     filtered_df = pd.DataFrame(df_dict)
-
+    
     # esta es un verificacion de refuerzo para ver si el csv tien columnas latitud y longitud si no tiene sale del callback
     if 'Latitud' not in filtered_df.columns or 'Longitud' not in filtered_df.columns:
         raise dash.exceptions.PreventUpdate
@@ -320,14 +326,15 @@ def generate_map(df_dict, kde_dict, tile_style, layer_value):
     )
     )
 
+    if layer_value:  # Si hay alguna capa seleccionada
 
-    if layer_value:         # Si hay alguna capa seleccionada
-
-    #Si el disparo de dio por el poligono KDE entonces carga el json
+        #Si el disparo de dio por el poligono KDE entonces carga el json
         if (triggered_by_kde_output or kde_dict is not None) and 'contornos' in layer_value:
-
             kde_geojson = json.loads(kde_dict)
             gdf = gpd.GeoDataFrame.from_features(kde_geojson['features'])
+
+            # Ordena el dataframe en orden descendente por nivel
+            gdf = gdf.sort_values(by='Nivel', ascending=False)
 
             choropleth_layer = go.Choroplethmapbox(
                 #pasa los valores a la variables geojson
@@ -351,7 +358,7 @@ def generate_map(df_dict, kde_dict, tile_style, layer_value):
             #print(gdf)
             #print('='*20)
 
-        if 'puntos' in layer_value:
+        if 'puntos' in layer_value and len(filtered_df) !=0:
             #le agrego el trace de los puntos
             fig.add_trace(
                 go.Scattermapbox(
@@ -374,7 +381,7 @@ def generate_map(df_dict, kde_dict, tile_style, layer_value):
                         size=9,
                         color= filtered_df['Color'],
                     ),
-                    text= filtered_df[['Clase']].values,
+                    text= filtered_df[['Nombre']].values,
                     name='Puntos',
                 )
             )
@@ -399,8 +406,6 @@ def generate_map(df_dict, kde_dict, tile_style, layer_value):
             uirevision='constant'  # Mantener el estado del zoom/paneo entre actualizaciones
         ),
     )
-    #print('Latitud:',filtered_df.Latitud.mean(),end='      ')
-    #print('Longitud:',filtered_df.Longitud.mean())
     
 
     return fig
@@ -412,83 +417,112 @@ def generate_map(df_dict, kde_dict, tile_style, layer_value):
 ##########################################################################################################################################################
 #Inicio Callback para modificar el dataframe
 ##########################################################################################################################################################
-def filter_df(dropdown_value_1, dropdown_value_2, dropdown_value_3, dropdown_value_4, dropdown_value_5, dropdown_value_6, switch_bnb, df_dict):
-    
+def filter_df(
+    dropdown_value_1,
+    dropdown_value_2,
+    dropdown_value_3,
+    dropdown_value_4,
+    dropdown_value_5,
+    switch_bnb,
+    df_dict,
+):
     # Si no se creo el df la funcion se sale directamente
     if df_dict is None:
-        return dash.no_update,dash.no_update
-
-    #convierte la entrada df_dict en un df
+        return dash.no_update, dash.no_update
+    
+    # convierte la entrada df_dict en un df
     df = pd.DataFrame(df_dict)
 
+    #fragmenta solo lo que tiene que ver con el BNB
+    _df_bnb_0 = df[df["IDBN"] == "BNB"]
+
     # esta es un verificacion de refuerzo para ver si el csv tien columnas latitud y longitud si no tiene sale del callback
-    if 'Latitud' not in df.columns or 'Longitud' not in df.columns:
+    if "Latitud" not in df.columns or "Longitud" not in df.columns:
         raise dash.exceptions.PreventUpdate
 
 
-    #filtra los tipos de puntos
+    # filtra los tipos de puntos
     if dropdown_value_1 is None or len(dropdown_value_1) == 0:
-        df_t = df
+        df_t = df.drop(df.index) #si no hay niguna selección se resetea el df a 0 filas
     else:
-        df_t = df[df['value_c'].isin(dropdown_value_1)]
+        df_t = df[df["value_c"].isin(dropdown_value_1)]
 
-    #filtra los Bancos
+    ######################################################################## fragmenta el df_ en varias partes
+
+    # Del total fragmenta los otros tipo de puntos
+    df_poi = df_t[df_t["Clase"].isin(["Centro Comercial","Mercado","Supermercado","Restaurante","Universidad"])]
+
+    # Del total fragmenta la Clase hotel
+    _df_hot = df_t[df_t["Clase"] == "Hotel"]
+
+    # Del total fragmenta la clase centro medico
+    _df_cem = df_t[df_t["Clase"] == "Centro Médico"]
+
+
+    # filtra los Bancos de la otras agencias 
     if dropdown_value_2 is None or len(dropdown_value_2) == 0:
-        df_banco = df_t
+        df_banco = df_t # si no hay ninguna selección el df mantiene todas sus filas
     else:
-        df_banco = df_t[df_t['IDBN'].isin(dropdown_value_2)]
+        df_banco = df_t[df_t["IDBN"].isin(dropdown_value_2)]
+    ######################################################################## fragmenta el df_ en varias partes
 
-    #Separa solo Tipo agencias
-    _df_agn = df_banco[df_banco['Clase'] == 'Agencia']
+    # De los banco fragmenta las clase ATM
+    _df_atm = df_banco[df_banco["Clase"] == "ATM"]
+
+
+    ######################################################################## Switches
+    # De las opcines Bancos filtra toda la clase agencias de lo contrario solo las agencias fijas
+    if "Otro" in switch_bnb:
+        df_agn = df_banco[df_banco['value_c'] == "AGNO"]
+        _df_bnb_1 = _df_bnb_0[_df_bnb_0["value_c"] == "AGNB"]
+    else:
+        df_agn = df_banco[df_banco['TipoAgencia'] == "Agencia"]
+        _df_bnb_1 = _df_bnb_0[_df_bnb_0["TipoAgencia"] == "Agencia"]
+
+    # Si esta activo el Switch bnb muesta las agencias del BNB si no, entrega el df vacio
+    if "AGNB" in switch_bnb:
+        df_bnb_agn = _df_bnb_1
+    else:
+        df_bnb_agn = _df_bnb_1.drop(_df_bnb_1.index)
+
+    # Si esta activo el Switch bnb muesta los ATM del BNB si no, entrega el df vacio
+    if "ATMB" in switch_bnb:
+        _df_bnb_a = _df_bnb_0[_df_bnb_0["value_c"] == "ATMB"]
+    else:
+        _df_bnb_a = _df_bnb_0.drop(_df_bnb_0.index)
     
-    _df_atm = df_banco[df_banco['Clase']== 'ATM']
-
-    df_poi = df_t[df_t['Clase'].isin(['Centro Comercial','Mercado','Supermercado','Restaurante','Universidad'])]
-
-    _df_hot = df_t[df_t['Clase']== 'Hotel']
-
-    _df_cem = df_t[df_t['Clase']== 'Centro Médico']
+    ######################################################################## Switches
 
 
-    #filtra los BNB
-    if switch_bnb is None or len(switch_bnb) == 0:
-        df_bnb = pd.DataFrame()
-    else:
-        df_bnb = df[df['value_c'].isin(switch_bnb)]
-
-
-    #filtra los tipo de agencias
+    # filtra los tipo de ATM de bnb o otros bancos
     if dropdown_value_3 is None or len(dropdown_value_3) == 0:
-        df_agn =_df_agn
-    else:
-        df_agn = _df_agn[_df_agn['TipoAgencia'].isin(dropdown_value_3)]
-
-    #filtra los tipo de ATM
-    if dropdown_value_4 is None or len(dropdown_value_4) == 0:
+        df_bnb_atm = _df_bnb_a
         df_atm = _df_atm
     else:
-        df_atm = _df_atm[_df_atm['DepositoATM'].isin(dropdown_value_4)]
+        df_bnb_atm = _df_bnb_a[_df_bnb_a["DepositoATM"].isin(dropdown_value_3)]
+        df_atm = _df_atm[_df_atm["DepositoATM"].isin(dropdown_value_3)]
 
-    #filtra los tipo de centros medicos
-    if dropdown_value_5 is None or len(dropdown_value_5) == 0:
+
+    # filtra los tipo de centros medicos
+    if dropdown_value_4 is None or len(dropdown_value_4) == 0:
         df_cem = _df_cem
     else:
-        df_cem = _df_cem[_df_cem['TipoCentroMedico'].isin(dropdown_value_5)]
+        df_cem = _df_cem[_df_cem["TipoCentroMedico"].isin(dropdown_value_4)]
 
-    #filtra los tipo de hotel
-    if dropdown_value_6 is None or len(dropdown_value_6) == 0:
+
+    # filtra los tipo de hotel
+    if dropdown_value_5 is None or len(dropdown_value_5) == 0:
         df_hot = _df_hot
     else:
-        df_hot = _df_hot[_df_hot['TipoHotel'].isin(dropdown_value_6)]
+        df_hot = _df_hot[_df_hot["TipoHotel"].isin(dropdown_value_5)]
 
+    
 
-    filtered_df = pd.concat([df_agn,df_atm,df_poi,df_hot,df_cem,df_bnb])
-    #print(filtered_df.Peso.unique())
+    filtered_df = pd.concat([df_bnb_atm, df_atm, df_poi, df_hot, df_cem, df_bnb_agn , df_agn])
 
-    #print('El numero de datos es:', len(filtered_df))
-
+   
     if isinstance(filtered_df, pd.DataFrame):
-        return filtered_df.to_dict('records'),len(filtered_df)
+        return filtered_df.to_dict(), len(filtered_df)
     else:
         raise dash.exceptions.PreventUpdate
 ##########################################################################################################################################################
@@ -503,7 +537,7 @@ def update_options_dp(df_dict, dropdown_value_2):
     
     opt = ['Banco Bisa S.A.', 'Banco de Crédito de Bolivia S.A.',
        'Banco Económico Bolivia', 'Banco Fie S.A.', 'Banco Ganadero S.A.',
-       'Banco Mercantil Santa Cruz S.A.', 'Banco Unión S.A.']
+       'Banco Mercantil Santa Cruz S.A.', 'Banco Unión S.A.','Banco Solidario']
     
     if df_dict is None:
         return dash.no_update
@@ -599,7 +633,7 @@ def update_dataframe(*args):
     data = args[-1]
     if data is None:
         raise dash.exceptions.PreventUpdate
-    print('Se generó un cambio')
+    #print('Se generó un cambio')
     #print('valor del in: ', args[-2])
     data = args[-1]
     pesos = args[:7]
@@ -668,15 +702,15 @@ def generate_gson(n_clicks, df_dict):
     #genero el df
     df = pd.DataFrame(df_dict)
     
-    if len(df)<2:
-        raise dash.exceptions.PreventUpdate
+    #if len(df)<2:
+        #raise dash.exceptions.PreventUpdate
     
     levels = 12  # Número de niveles de contorno
     kde_gdf = perform_kde(df,levels)
 
     #convierte el geodataframe en json
     kde_geojson = kde_gdf.to_json()
-    print('Se genero el KDE')
+    #print(kde_gdf)
     return kde_geojson
 ##########################################################################################################################################################
 #Fin Callback desarrolla el KDE

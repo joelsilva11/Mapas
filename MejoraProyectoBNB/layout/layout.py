@@ -5,14 +5,17 @@ import dash_daq as daq
 
 # logo Altitude en el Nav bar como barra de título
 PLOTLY_LOGO = "https://raw.githubusercontent.com/joelsilva11/GIS/main/logo-blanco.png"
+tile_icon = 'https://raw.githubusercontent.com/joelsilva11/GIS/main/tile_icon_1.png'
+layer_icon = 'https://raw.githubusercontent.com/joelsilva11/GIS/main/tile_icon_2.png'
 
 ################################################ Opciones del boton tile layers
 mapbox_style_dict = {
-    'Dark':'dark',
-    'Light':'streets',
-    'Topo':'stamen-terrain',
-    'Sate':'satellite-streets',
-    'Open':'open-street-map',
+    "Light": "light",
+    'Dark Map':'dark',
+    'Streets':'streets',
+    'Topographic':'stamen-terrain',
+    'Satellite Streets':'satellite-streets',
+    'Open Streets':'open-street-map',
 }
 
 ################################################ Opciones del boton layers
@@ -39,15 +42,18 @@ opciones_clases = [
 
 ################################################Opciones bancos
 opciones_bancos = [
-    {'label': 'Banco Bisa', 'value': 'BSA'},
-    {'label': 'Banco de Crédito de Bolivia', 'value': 'BCP'},
-    {'label': 'Banco Económico Bolivia', 'value': 'BEC'},
-    {'label': 'Banco Fie', 'value': 'FIE'},
-    {'label': 'Banco Ganadero', 'value': 'BGA'},
-    {'label': 'Banco Mercantil Santa Cruz', 'value': 'MSC'},
-    #{'label': 'Banco Nacional de Bolivia', 'value': 'BNB'},
-    {'label': 'Banco Unión', 'value': 'BUN'}
-    ]
+
+    {"label": "Banco Bisa", "value": "BSA"},
+    {"label": "Banco de Crédito de Bolivia", "value": "BCP"},
+    {"label": "Banco Económico Bolivia", "value": "BEC"},
+    {"label": "Banco Fie", "value": "FIE"},
+    {"label": "Banco Ganadero", "value": "BGA"},
+    {"label": "Banco Mercantil Santa Cruz", "value": "MSC"},
+    # {'label': 'Banco Nacional de Bolivia', 'value': 'BNB'},
+    {"label": "Banco Unión", "value": "BUN"},
+    {"label": "Banco Solidario", "value": "SOL"}
+
+]
 
 ################################################Opciones agencias
 opciones_ag = [
@@ -58,8 +64,8 @@ opciones_agencias = [{'label': opcion, 'value': opcion} for opcion in opciones_a
 
 ################################################Opciones atm
 opciones_atm = [
-    {'label': 'Permite depósitos', 'value': 'Si'},
-    {'label': 'No Permite depósitos', 'value': 'No'}, 
+    {'label': 'Con depósito', 'value': 'Si'},
+    {'label': 'Normal', 'value': 'No'}, 
     ]
 
 ################################################Opciones centros médicos
@@ -87,10 +93,12 @@ opciones_hoteles = [{'label': opcion, 'value': opcion} for opcion in opciones_ht
 ################################################################ fin de las opciones de los filtros para no hacerlos muy complicado
 
 ################################################Opciones BNB
-options_bnb=[
-            {"label": "Agencias", "value": 'AGNB'},
-            {"label": "ATMs", "value": 'ATMB'}
-        ]
+options_bnb = [
+    {"label": "Agencias BNB", "value": "AGNB"},
+    {"label": "ATMs BNB", "value": "ATMB"},
+    {"label": "Otras Agencias", "value": "Otro"},
+
+]
 
 ###################################################################crea la barra de titulo
 navbar = dbc.Navbar(
@@ -274,7 +282,7 @@ def create_dropdown_p(id_suffix, dp_options,title_dp = 'Title'):
             [
                 html.Div(# ventana que contiene a los divs con tamaño fijo y scroll
                     [   
-                        dbc.Checklist(options=["All"], value=[], id=all_checklist_id, style={'padding-left': 8}),
+                        dbc.Checklist(options=["All"], value=["All"], id=all_checklist_id, style={'padding-left': 8}),
                         dbc.Checklist(options=dp_options, value=[], id=checklist_id, style={'padding-left': 16}),
                     ],
                 id=container_id,
@@ -406,7 +414,7 @@ def create_switch(id_suffix,Titulo,options_sw):
         html.H6(Titulo, style={'margin-bottom': 10}),
         dbc.Checklist(
             options = options_sw,
-            value=[i['value'] for i in options_sw],# inicia los valores en ON
+            value=[i['value'] for i in options_sw[:-1]],# inicia los valores en ON menos el último
             id = input_id,
             switch=True,
         style={
@@ -419,6 +427,121 @@ def create_switch(id_suffix,Titulo,options_sw):
         'padding-left': '10px',
         'padding-bottom': 15,
     },
+    )
+
+# crea el icono desplegable para los tiles
+def create_dp_tile(id_suffix,tl_icon,tl_title,tl_options):
+    button_id = f'tl-button-{id_suffix}'
+    list_id = f'tl-list-{id_suffix}'
+    container_id = f'tl-container-list-{id_suffix}'
+    icon_id = f'tl-icon-{id_suffix}'
+
+    return html.Div(
+        [
+            html.Div(
+            [
+                html.Img(src= tl_icon,id=icon_id, style={'width':'25px', 'height':'25px'})
+            ], 
+            id= button_id,
+            style={
+                'borderRadius': '5px',
+                'backgroundColor': 'rgba(42, 159, 214, 0.4)',
+                'padding':'7px',
+                'display': 'inline-block', # Agregado
+            }
+            ),
+            html.Div(
+            [
+                html.H6(tl_title, style={'padding': '4px 8px 0px 8px'}),
+                dbc.RadioItems(
+                    options=[{'label': i, 'value': i} for i in tl_options.keys()], 
+                    value='Dark Map', 
+                    id=list_id, 
+                style={
+                    'padding': '0px 4px 4px 8px',
+                    #'backgroundColor': '#222',
+                    'border-bottom-left-radius': '5px',
+                    'border-bottom-right-radius': '5px',
+                },
+                ),
+            ],
+            id= container_id,
+            style={
+                    'backgroundColor': 'rgba(7,7,7, 0.7)',
+                    'borderRadius': '5px',
+                    'position': 'absolute',
+                    'width':'200px', 
+                    'z-index': '100',
+                    'display': 'none', # Agregado
+            },
+            ),
+
+        ],
+        style={
+            'position': 'absolute', 
+            'borderRadius': '4px',
+            'top': '10px', 
+            'left': '10px', 
+            #'z-index': '1000',
+        }
+    )
+
+# crea el icono desplegable para los layers
+def create_dp_layer(id_suffix,tl_icon,tl_title,tl_options):
+    button_id = f'ly-button-{id_suffix}'
+    list_id = f'ly-list-{id_suffix}'
+    container_id = f'ly-container-list-{id_suffix}'
+    icon_id = f'ly-icon-{id_suffix}'
+
+    return html.Div(
+        [
+            html.Div(
+            [
+                html.Img(src= tl_icon,id=icon_id, style={'width':'25px', 'height':'25px'})
+            ], 
+            id= button_id,
+            style={
+                'borderRadius': '5px',
+                'backgroundColor': 'rgba(42, 159, 214, 0.4)',
+                'padding':'7px',
+                'display': 'inline-block', # Agregado
+            }
+            ),
+            html.Div(
+            [
+                html.H6(tl_title, style={'padding': '4px 8px 0px 8px'}),
+                dbc.Checklist(
+                    options=tl_options, 
+                    value=['puntos','contornos'], 
+                    id=list_id, 
+                style={
+                    'padding': '0px 4px 4px 8px',
+                    #'backgroundColor': '#222',
+                    'border-bottom-left-radius': '5px',
+                    'border-bottom-right-radius': '5px',
+                }
+                ),
+            ],
+            id= container_id,
+            style={
+                    'backgroundColor': 'rgba(7,7,7, 0.7)',
+                    'borderRadius': '5px',
+                    'position': 'absolute',
+                    'width':'200px',  
+                    'z-index': '100',
+                    'display':'none',
+            },
+            ),
+
+        ],
+        style={
+            'position': 'absolute', 
+            'borderRadius': '4px',
+            'top': '50px', 
+            'left': '10px', 
+            #'z-index': '10',
+            #'height': '88px',
+        }
     )
 
 #funcion para crear el dropdwon de tiles
@@ -453,7 +576,7 @@ def create_droplayers(id_tile, opt_tiles):
         dcc.Dropdown(
             id=id_tile,
             options=opt_tiles,
-            value=['puntos'],
+            value=['puntos','contornos'],
             searchable=False,
             multi=True,
             clearable=False,
@@ -499,16 +622,16 @@ layout = html.Div([
             create_dropdown_p('2',opciones_bancos,'Bancos'),
 
             ################################################### Dropdown3
-            create_dropdown_p('3',opciones_agencias,'Tipos de Agencias'),
+            #create_dropdown_p('3',opciones_agencias,'Tipos de Agencias'),
 
             ################################################### Dropdown4
-            create_dropdown_p('4',opciones_atm,'ATM con depósito'),
+            create_dropdown_p('3',opciones_atm,'ATM con depósito'),
 
             ################################################### Dropdown5
-            create_dropdown_p('5',opciones_ceme,'Tipos de Centros Médicos'),
+            create_dropdown_p('4',opciones_ceme,'Tipos de Centros Médicos'),
 
             ################################################### Dropdown6
-            create_dropdown_p('6',opciones_hoteles,'Tipos de Hospedaje'),
+            create_dropdown_p('5',opciones_hoteles,'Tipos de Hospedaje'),
 
             ################################################### Selector Agencias y ATMs BNB
             html.Div(create_switch('bnb','Puntos BNB',options_bnb),
@@ -516,7 +639,7 @@ layout = html.Div([
                 'margin-bottom': '7px',
                 'backgroundColor': '#333',
                 'borderRadius': '5px',
-                'height': '11%'
+                'height': '14%'
             }
             ),
 
@@ -612,11 +735,16 @@ layout = html.Div([
 
             ############################################### Inicio dropdown tile layers
             html.Div([
-            create_droptiles('id_tile', mapbox_style_dict)
+            create_dp_tile('1',tile_icon,'Mapa base',mapbox_style_dict),
+            create_dp_layer('1',layer_icon,'Capas',options_layers_dict)
             ],
             id='tile_container',
             style={
-                'display':'none'
+                #'top': '10px', 
+                #'left': '10px',
+                'display':'none',
+                #'position': 'relative',
+                #'z-index': '101', 
             },
             ),
             ############################################### Fin dropdown tile layers

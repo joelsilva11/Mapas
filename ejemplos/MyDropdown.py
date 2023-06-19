@@ -44,17 +44,17 @@ def create_dropdown(id_suffix, dp_options,title_dp = 'Title'):
                         dbc.Checklist(options=["All"], value=[], id=all_checklist_id, style={'padding-left': 8}),
                         dbc.Checklist(options=dp_options, value=[], id=checklist_id, style={'padding-left': 16}),
                     ],
-                    id=container_id,
-                    style={
-                        'display':'none',
-                        'backgroundColor': 'rgba(0, 0, 0, 0.92)', 
-                        'borderRadius': '5px',
-                        'overflow': 'auto',
-                        'maxHeight': '180px', 
-                        'position': 'absolute', 
-                        'z-index': '9999',
-                        'width': '100%',
-                    }
+                id=container_id,
+                style={
+                    'display':'none',
+                    'backgroundColor': 'rgba(0, 0, 0, 0.92)', 
+                    'borderRadius': '5px',
+                    'overflow': 'auto',
+                    'maxHeight': '180px', 
+                    'position': 'absolute', 
+                    'z-index': '9999',
+                    'width': '100%',
+                }
                 ),
                 ],
                 style={

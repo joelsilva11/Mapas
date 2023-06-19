@@ -67,8 +67,9 @@ app.callback( #generate_map
     [
         Input('filter-value', 'data'),
         Input('kde-output', 'data'),
-        Input('id_tile', 'value'),
-        Input('id_layer', 'value'),
+        Input('tl-list-1', 'value'),
+        Input('ly-list-1', 'value'),
+        #Input('tl-list-1', 'value'),
     ]
 )(generate_map)
 
@@ -89,7 +90,6 @@ app.callback( #filter_df
         Input('checklist-3', 'value'),
         Input('checklist-4', 'value'),
         Input('checklist-5', 'value'),
-        Input('checklist-6', 'value'),
         Input('switches-bnb', 'value'),
         Input('store-transformed', 'data')
     ]
@@ -153,10 +153,9 @@ app.callback(
 # Estos callbacks son para los dropdowns personalizados
 create_callbacks('1',opciones_clases)
 create_callbacks('2',opciones_bancos)  
-create_callbacks('3',opciones_agencias)
-create_callbacks('4',opciones_atm)
-create_callbacks('5',opciones_ceme)
-create_callbacks('6',opciones_hoteles)
+create_callbacks('3',opciones_atm)
+create_callbacks('4',opciones_ceme)
+create_callbacks('5',opciones_hoteles)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
