@@ -16,6 +16,15 @@ from dash import html
 from layout.layout import create_dropdown
 
 token = 'pk.eyJ1Ijoiam1zczExIiwiYSI6ImNsN3RsbHpldDEwNDIzdm1rMG1qZWx6cmUifQ.svDPURTTxi1aHuHpzPU8sQ'
+path = 'C:/Users/joels/altitudesolutions.org/AS - Clientes/57 BNB/2. Datos/Datos_BNB/AGN_ATM_BNB.csv'
+
+################################################# temporal
+df = pd.read_csv(path)
+df_atm = df[df['Tipo']=='ATM']
+df_agn = df[df['Tipo']!='ATM'] 
+df_agn.loc[:,'diameter'] = df_agn['TotalMonto']/2000000
+df_atm.loc[:,'diameter'] = df_atm['TotalMonto']/60000
+################################################# temporal
 
 ###################################################################### Funcion para verificar la carga del csv 
 def parse_contents(contents, filename):
@@ -289,18 +298,19 @@ mapbox_style_dict = {
 ##########################################################################################################################################################
 #Inicio Callback que crea el mapa
 ##########################################################################################################################################################
-def generate_map(df_dict, kde_dict, tile_style, layer_value):
+def generate_map(df_dict, kde_dict, tile_style, layer_value, kde_dict_2):
 
-    #print(tl)
-    #print(tile_style)
-    #print('='*100)
     # Si no se creo el df la funcion se sale directamente
     if df_dict is None:
         return dash.no_update
     
+     
+    #print(df)
+
     #comprueba que el disparador fue el poligono kde retorna True
     ctx = dash.callback_context
     triggered_by_kde_output = ctx.triggered and ctx.triggered[0]['prop_id'] == 'kde-output.data'
+    triggered_by_kde_output2 = ctx.triggered and ctx.triggered[0]['prop_id'] == 'kde-output-2.data'
 
     
     filtered_df = pd.DataFrame(df_dict)
@@ -358,6 +368,34 @@ def generate_map(df_dict, kde_dict, tile_style, layer_value):
             #print(gdf)
             #print('='*20)
 
+        #Si el disparo de dio por el poligono KDE entonces carga el json
+        if (triggered_by_kde_output2 or kde_dict_2 is not None) and 'contornos 2' in layer_value:
+            kde_geojson = json.loads(kde_dict_2)
+            gdf = gpd.GeoDataFrame.from_features(kde_geojson['features'])
+
+            # Ordena el dataframe en orden descendente por nivel
+            gdf = gdf.sort_values(by='Nivel', ascending=False)
+
+            choropleth_layer = go.Choroplethmapbox(
+                #pasa los valores a la variables geojson
+                geojson=kde_geojson,
+                locations=gdf.index.astype(str), #enumera todos los poligonos y is indices los vuelve texto
+                z=gdf['Nivel'], # Usar la columna '0' como valores de color 
+                colorscale='Magma',
+                hoverinfo='all', # Muestra toda la información en el hover
+                hovertemplate='Nivel: %{z}<extra></extra>', # Personaliza el hover para mostrar solo la información que deseas
+                #marker_opacity=0.2,
+                showscale=False,# oculta la barra fea
+                #marker_line_width=10
+                marker=go.choroplethmapbox.Marker(
+                    opacity=0.2,
+                    line_width=2,  # Ajustar este valor para cambiar el grosor de las líneas de contorno
+                    line_color='rgba(0,0,0,0.9)'  # Ajustar este valor para cambiar el color de las líneas de contorno
+                ),
+                name='Contornos',
+            )
+            fig.add_trace(choropleth_layer)
+
         if 'puntos' in layer_value and len(filtered_df) !=0:
             #le agrego el trace de los puntos
             fig.add_trace(
@@ -372,6 +410,7 @@ def generate_map(df_dict, kde_dict, tile_style, layer_value):
                     hoverinfo='none'
                 )
             )
+            filtered_df['Banco'] = filtered_df['Banco'].fillna('')
             fig.add_trace(
                 go.Scattermapbox(
                     lat= filtered_df['Latitud'],
@@ -380,9 +419,50 @@ def generate_map(df_dict, kde_dict, tile_style, layer_value):
                     marker=go.scattermapbox.Marker(
                         size=9,
                         color= filtered_df['Color'],
+                        #color='blue',
+                        #sizemode='diameter'
                     ),
-                    text= filtered_df[['Nombre']].values,
+                    text= filtered_df['Nombre'],
                     name='Puntos',
+                    customdata=filtered_df[['Banco','Clase']].values,
+                    hovertemplate='<br>%{customdata[1]}</br><b>%{text}</b><br>%{customdata[0]}<extra></extra>',
+                )
+            )
+        
+        if 'agn bnb' in layer_value:
+
+            fig.add_trace(
+                go.Scattermapbox(
+                    lat= df_agn['Latitud'],
+                    lon= df_agn['Longitud'],
+                    mode='markers',
+                    opacity=0.5,
+                    marker=go.scattermapbox.Marker(
+                        size=df_agn['diameter'],
+                        color= '#26B460',
+                        #color='blue',
+                        sizemode='diameter'
+                    ),
+                    text= df_agn['Nombre'],
+                    name='Agencias BNB',
+                )
+            )
+
+        if 'atm bnb' in layer_value:
+            fig.add_trace(
+                go.Scattermapbox(
+                    lat= df_atm['Latitud'],
+                    lon= df_atm['Longitud'],
+                    mode='markers',
+                    opacity=0.5,
+                    marker=go.scattermapbox.Marker(
+                        size=df_atm['diameter'],
+                        color= '#68478D',
+                        #color='blue',
+                        sizemode='diameter'
+                    ),
+                    text= df_atm['Nombre'],
+                    name='ATM BNB',
                 )
             )
 
@@ -418,11 +498,11 @@ def generate_map(df_dict, kde_dict, tile_style, layer_value):
 #Inicio Callback para modificar el dataframe
 ##########################################################################################################################################################
 def filter_df(
-    dropdown_value_1,
-    dropdown_value_2,
-    dropdown_value_3,
-    dropdown_value_4,
-    dropdown_value_5,
+    dropdown_value_1, #filtro tipo punto
+    dropdown_value_2, #filtro bancos
+    dropdown_value_3, #filtro ATM
+    #dropdown_value_4, #filtro centros medicos
+    #dropdown_value_5, #filtro tipo hospedaje
     switch_bnb,
     df_dict,
 ):
@@ -504,17 +584,21 @@ def filter_df(
 
 
     # filtra los tipo de centros medicos
-    if dropdown_value_4 is None or len(dropdown_value_4) == 0:
+    df_cem = _df_cem
+
+    """if dropdown_value_4 is None or len(dropdown_value_4) == 0:
         df_cem = _df_cem
     else:
-        df_cem = _df_cem[_df_cem["TipoCentroMedico"].isin(dropdown_value_4)]
+        df_cem = _df_cem[_df_cem["TipoCentroMedico"].isin(dropdown_value_4)]"""
 
 
     # filtra los tipo de hotel
-    if dropdown_value_5 is None or len(dropdown_value_5) == 0:
+    df_hot = _df_hot
+
+    """if dropdown_value_5 is None or len(dropdown_value_5) == 0:
         df_hot = _df_hot
     else:
-        df_hot = _df_hot[_df_hot["TipoHotel"].isin(dropdown_value_5)]
+        df_hot = _df_hot[_df_hot["TipoHotel"].isin(dropdown_value_5)]"""
 
     
 
@@ -710,8 +794,12 @@ def generate_gson(n_clicks, df_dict):
 
     #convierte el geodataframe en json
     kde_geojson = kde_gdf.to_json()
-    #print(kde_gdf)
-    return kde_geojson
+    print(n_clicks)
+    if n_clicks%2!=0:
+        return kde_geojson,dash.no_update
+    else:
+    
+        return dash.no_update, kde_geojson
 ##########################################################################################################################################################
 #Fin Callback desarrolla el KDE
 ##########################################################################################################################################################

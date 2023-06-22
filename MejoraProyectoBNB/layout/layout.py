@@ -21,23 +21,28 @@ mapbox_style_dict = {
 ################################################ Opciones del boton layers
 options_layers_dict=[
             {'label': 'Puntos', 'value': 'puntos'},
-            {'label': 'Contornos', 'value': 'contornos'}
+            {'label': 'Burbujas Agencias BNB', 'value': 'agn bnb'},
+            {'label': 'Burbujas ATM BNB', 'value': 'atm bnb'},
+            {'label': 'Contornos', 'value': 'contornos'},
+            {'label': 'Contornos 2', 'value': 'contornos 2'}
         ]
 
 ################################################################ Creamos las opciones de los filtros para no hacerlos muy complicado
 ################################################Opciones clase
 opciones_clases = [
-    {'label': 'Agencia', 'value': 'AGNO'},
+    {'label': 'Agencias otros bancos', 'value': 'AGNO'},
     #{'label': 'Agencia BNB', 'value': 'AGNB'},
-    {'label': 'ATM', 'value': 'ATMO'},
+    {'label': 'ATM otros bancos', 'value': 'ATMO'},
     #{'label': 'ATM BNB', 'value': 'ATMB'},
-    {'label': 'Centro Comercial', 'value': 'CCOM'},
-    {'label': 'Mercado', 'value': 'MERC'},
-    {'label': 'Supermercado', 'value': 'SUPE'},
-    {'label': 'Restaurante', 'value': 'REST'},
-    {'label': 'Hotel', 'value': 'HOTE'},
-    {'label': 'Centro Médico', 'value': 'CMED'},
-    {'label': 'Universidad', 'value': 'UNIV'}
+    {'label': 'Centros comerciales', 'value': 'CCOM'},
+    {'label': 'Clínicas', 'value': 'CLCA'},
+    {'label': 'Hospitales', 'value': 'CMED'},
+    {'label': 'Hoteles', 'value': 'HOTE'},
+    {'label': 'Mercados', 'value': 'MERC'},
+    {'label': 'Minimarkets', 'value': 'MICM'},
+    {'label': 'Supermercados', 'value': 'SUPE'},
+    {'label': 'Restaurantes', 'value': 'REST'},
+    {'label': 'Universidades', 'value': 'UNIV'}
     ]
 
 ################################################Opciones bancos
@@ -46,10 +51,10 @@ opciones_bancos = [
     {"label": "Banco Bisa", "value": "BSA"},
     {"label": "Banco de Crédito de Bolivia", "value": "BCP"},
     {"label": "Banco Económico Bolivia", "value": "BEC"},
-    {"label": "Banco Fie", "value": "FIE"},
     {"label": "Banco Ganadero", "value": "BGA"},
     {"label": "Banco Mercantil Santa Cruz", "value": "MSC"},
     # {'label': 'Banco Nacional de Bolivia', 'value': 'BNB'},
+    {"label": "Banco Fie", "value": "FIE"},
     {"label": "Banco Unión", "value": "BUN"},
     {"label": "Banco Solidario", "value": "SOL"}
 
@@ -512,7 +517,7 @@ def create_dp_layer(id_suffix,tl_icon,tl_title,tl_options):
                 html.H6(tl_title, style={'padding': '4px 8px 0px 8px'}),
                 dbc.Checklist(
                     options=tl_options, 
-                    value=['puntos','contornos'], 
+                    value=['puntos','contornos','contornos 2'], 
                     id=list_id, 
                 style={
                     'padding': '0px 4px 4px 8px',
@@ -527,7 +532,7 @@ def create_dp_layer(id_suffix,tl_icon,tl_title,tl_options):
                     'backgroundColor': 'rgba(7,7,7, 0.7)',
                     'borderRadius': '5px',
                     'position': 'absolute',
-                    'width':'200px',  
+                    'width':'220px',  
                     'z-index': '100',
                     'display':'none',
             },
@@ -551,7 +556,7 @@ def create_droptiles(id_tile, opt_tiles):
         dcc.Dropdown(
             id=id_tile,
             options=[{'label': i, 'value': i} for i in opt_tiles.keys()],
-            value='Dark',
+            value='light',
             searchable=False,
             clearable=False,
         style={
@@ -576,7 +581,7 @@ def create_droplayers(id_tile, opt_tiles):
         dcc.Dropdown(
             id=id_tile,
             options=opt_tiles,
-            value=['puntos','contornos'],
+            value=['puntos','contornos','contornos 2'],
             searchable=False,
             multi=True,
             clearable=False,
@@ -628,10 +633,10 @@ layout = html.Div([
             create_dropdown_p('3',opciones_atm,'ATM con depósito'),
 
             ################################################### Dropdown5
-            create_dropdown_p('4',opciones_ceme,'Tipos de Centros Médicos'),
+            #create_dropdown_p('4',opciones_ceme,'Tipos de Centros Médicos'),
 
             ################################################### Dropdown6
-            create_dropdown_p('5',opciones_hoteles,'Tipos de Hospedaje'),
+            #create_dropdown_p('5',opciones_hoteles,'Tipos de Hospedaje'),
 
             ################################################### Selector Agencias y ATMs BNB
             html.Div(create_switch('bnb','Puntos BNB',options_bnb),
@@ -776,9 +781,9 @@ layout = html.Div([
         ############################################### Inicio Div que contiene los sliders
         html.Div([
             ############################################### Slider 1
-            create_slider('Banco BNB','1'),
+            create_slider('Agencias BNB','1'),
             ############################################### Slider 2
-            create_slider('Otros Bancos','2'),
+            create_slider('Agencias de otros bancos','2'),
             ############################################### Slider 3
             create_slider('ATMs','3'),
             ############################################### Slider 4
@@ -833,7 +838,7 @@ layout = html.Div([
     ),
     ################################################################################ Inicio Div pantalla principal
 
-    #Slice screen
+    #offcanvas screen
     ################################################################################ Inicio de la ventana desplegable
     dbc.Offcanvas(
         dbc.Container([
@@ -875,6 +880,10 @@ layout = html.Div([
     ################################################### Inicio para almacenar el KDE en un geojson
     dcc.Store(id='kde-output'),
     ################################################### Fin para almacenar el KDE en un geojson
+
+    ################################################### Inicio para almacenar el KDE2 en un geojson
+    dcc.Store(id='kde-output-2'),
+    ################################################### Fin para almacenar el KDE2 en un geojson
     
     
     ################################################### Inicio para almacenar el df que sera filtado por los dropdowns

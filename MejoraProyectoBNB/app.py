@@ -69,13 +69,14 @@ app.callback( #generate_map
         Input('kde-output', 'data'),
         Input('tl-list-1', 'value'),
         Input('ly-list-1', 'value'),
-        #Input('tl-list-1', 'value'),
+        Input('kde-output-2', 'data'),
     ]
 )(generate_map)
 
 #este callback se ejecuta cuando se el usuario quiere generar un KDE
 app.callback( #generate_gson
     Output('kde-output', 'data'),
+    Output('kde-output-2', 'data'),
     [Input('kde-button', 'n_clicks')],
     State('filter-value', 'data')
 )(generate_gson)
@@ -88,8 +89,8 @@ app.callback( #filter_df
         Input('checklist-1', 'value'),
         Input('checklist-2', 'value'),
         Input('checklist-3', 'value'),
-        Input('checklist-4', 'value'),
-        Input('checklist-5', 'value'),
+        #Input('checklist-4', 'value'),
+        #Input('checklist-5', 'value'),
         Input('switches-bnb', 'value'),
         Input('store-transformed', 'data')
     ]
@@ -154,8 +155,8 @@ app.callback(
 create_callbacks('1',opciones_clases)
 create_callbacks('2',opciones_bancos)  
 create_callbacks('3',opciones_atm)
-create_callbacks('4',opciones_ceme)
-create_callbacks('5',opciones_hoteles)
+#create_callbacks('4',opciones_ceme)
+#create_callbacks('5',opciones_hoteles)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
